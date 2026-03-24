@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PointiCrèche v2 — Analyse Pointeuse & Impact Financier</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&family=Fraunces:ital,wght@0,600;0,700;0,800;1,600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#FAF7F2;--bg-card:#FFF;--bg-warm:#FFF8F0;--text:#2C1810;--text-muted:#8B7355;--text-light:#B8A48E;
+  --accent:#E8734A;--accent-hover:#D4612F;--accent-soft:#FDEEE8;
+  --success:#388E3C;--success-soft:#E8F5E9;--warning:#EF6C00;--warning-soft:#FFF3E0;
+  --danger:#C62828;--danger-soft:#FFEBEE;--info:#5C6BC0;--info-soft:#E8EAF6;
+  --purple:#7B1FA2;--purple-soft:#F3E5F6;
+  --border:#E8DFD3;--shadow:0 2px 12px rgba(44,24,16,.06);--shadow-lg:0 8px 32px rgba(44,24,16,.1);
+  --radius:14px;--radius-sm:8px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6}
+
+.header{background:linear-gradient(135deg,#2C1810 0%,#4A2E20 60%,#6B3D2E 100%);color:#fff;padding:22px 36px;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(44,24,16,.2)}
+.header-inner{max-width:1500px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.header h1{font-family:'Fraunces',serif;font-size:1.6rem;font-weight:700;letter-spacing:-.5px}
+.header h1 span{color:var(--accent)}
+.header-sub{font-size:.78rem;opacity:.6;margin-top:1px}
+.header-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--radius-sm);font-family:'DM Sans';font-size:.84rem;font-weight:600;cursor:pointer;border:none;transition:all .2s;white-space:nowrap}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:var(--accent-hover);transform:translateY(-1px)}
+.btn-secondary{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.2)}.btn-secondary:hover{background:rgba(255,255,255,.2)}
+.btn-outline{background:0;color:var(--accent);border:2px solid var(--accent)}.btn-outline:hover{background:var(--accent-soft)}
+.btn-sm{padding:5px 12px;font-size:.78rem}
+.btn-danger{background:var(--danger);color:#fff}.btn-danger:hover{background:#B71C1C}
+.btn-success{background:var(--success);color:#fff}
+
+.main{max-width:1500px;margin:0 auto;padding:24px 36px 60px}
+
+.tabs{display:flex;gap:3px;background:var(--bg-card);border-radius:var(--radius);padding:4px;margin-bottom:24px;box-shadow:var(--shadow);border:1px solid var(--border);overflow-x:auto}
+.tab{padding:9px 18px;border-radius:10px;font-size:.82rem;font-weight:600;cursor:pointer;border:none;background:0;color:var(--text-muted);transition:all .2s;white-space:nowrap;font-family:'DM Sans'}
+.tab:hover{color:var(--text);background:var(--bg)}.tab.active{background:var(--accent);color:#fff}
+
+.card{background:var(--bg-card);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);padding:22px;margin-bottom:18px}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:10px;flex-wrap:wrap}
+.card-title{font-family:'Fraunces',serif;font-size:1.1rem;font-weight:700}
+
+.upload-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:40px 24px;text-align:center;cursor:pointer;transition:all .3s;background:var(--bg-warm)}
+.upload-zone:hover,.upload-zone.dragover{border-color:var(--accent);background:var(--accent-soft)}
+.upload-zone .icon{font-size:2.6rem;margin-bottom:8px}
+.upload-zone h3{font-family:'Fraunces',serif;font-size:1.1rem;margin-bottom:4px}
+.upload-zone p{color:var(--text-muted);font-size:.82rem}
+
+.config-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.config-group label{display:block;font-size:.76rem;font-weight:600;color:var(--text-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+.config-group input,.config-group select{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:'DM Sans';font-size:.88rem;background:var(--bg);color:var(--text)}
+.config-group input:focus,.config-group select:focus{outline:none;border-color:var(--accent)}
+
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:22px}
+.stat-card{background:var(--bg-card);border-radius:var(--radius);border:1px solid var(--border);padding:18px;text-align:center;box-shadow:var(--shadow);transition:transform .2s}
+.stat-card:hover{transform:translateY(-2px)}
+.stat-value{font-family:'Fraunces',serif;font-size:2rem;font-weight:800;line-height:1.1}
+.stat-label{font-size:.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-top:3px;font-weight:600}
+.stat-card.danger .stat-value{color:var(--danger)}.stat-card.warning .stat-value{color:var(--warning)}
+.stat-card.success .stat-value{color:var(--success)}.stat-card.info .stat-value{color:var(--info)}
+.stat-card.purple .stat-value{color:var(--purple)}
+
+.table-container{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.84rem}
+thead th{text-align:left;padding:10px 12px;font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);border-bottom:2px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none}
+thead th:hover{color:var(--text)}
+tbody td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+tbody tr:hover{background:var(--bg-warm)}
+tbody tr.row-danger{background:#FFF5F5}
+tbody tr.row-warning{background:#FFFAF0}
+
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 9px;border-radius:20px;font-size:.72rem;font-weight:600}
+.badge-danger{background:var(--danger-soft);color:var(--danger)}.badge-warning{background:var(--warning-soft);color:var(--warning)}
+.badge-success{background:var(--success-soft);color:var(--success)}.badge-info{background:var(--info-soft);color:var(--info)}
+.badge-purple{background:var(--purple-soft);color:var(--purple)}
+
+.severity-bar{display:flex;height:7px;border-radius:4px;overflow:hidden;background:#eee;min-width:80px}
+.severity-fill{height:100%;transition:width .4s ease}
+
+.tab-panel{display:none}.tab-panel.active{display:block;animation:fadeIn .3s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+.family-detail{background:var(--bg-warm);border-radius:var(--radius);padding:18px;margin-top:10px;border-left:4px solid var(--accent)}
+.detail-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.detail-item label{display:block;font-size:.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.detail-item span{font-size:.9rem;font-weight:600}
+
+.contrat-row{display:flex;gap:8px;align-items:center;margin-bottom:6px;flex-wrap:wrap;padding:6px 8px;border-radius:6px}
+.contrat-row:hover{background:var(--bg)}
+.contrat-row input{padding:5px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:'DM Sans';font-size:.82rem;width:80px}
+.contrat-row span{font-size:.82rem;color:var(--text-muted)}
+
+.filter-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.filter-bar input,.filter-bar select{padding:7px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:'DM Sans';font-size:.82rem;background:#fff}
+
+.impact-box{background:linear-gradient(135deg,var(--danger-soft),#FFF5F5);border:1px solid #FFCDD2;border-radius:var(--radius);padding:20px;margin-bottom:18px}
+.impact-box h3{font-family:'Fraunces',serif;color:var(--danger);margin-bottom:8px}
+.impact-value{font-family:'Fraunces',serif;font-size:2.4rem;font-weight:800;color:var(--danger)}
+
+.empty-state{text-align:center;padding:50px 24px;color:var(--text-muted)}
+.empty-state .icon{font-size:3.5rem;opacity:.4;margin-bottom:12px}
+.empty-state h3{font-family:'Fraunces',serif;font-size:1.1rem;color:var(--text);margin-bottom:4px}
+
+.info-tip{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;background:var(--border);color:var(--text-muted);font-size:.68rem;font-weight:700;cursor:help;position:relative}
+.info-tip:hover::after{content:attr(data-tip);position:absolute;bottom:130%;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;padding:6px 11px;border-radius:6px;font-size:.72rem;font-weight:400;white-space:normal;z-index:10;max-width:280px;text-align:left;min-width:180px}
+
+.two-cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:900px){.two-cols{grid-template-columns:1fr}}
+
+::-webkit-scrollbar{width:7px;height:7px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+
+@media(max-width:768px){.header{padding:14px 16px}.header h1{font-size:1.2rem}.main{padding:14px 16px 40px}.stats-row{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+
+<header class="header">
+<div class="header-inner">
+  <div>
+    <h1>🏠 Pointi<span>Crèche</span> <small style="font-size:.55em;opacity:.5">v2</small></h1>
+    <div class="header-sub">Analyse pointeuse · Contrats · Impact financier CAF</div>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-secondary" onclick="loadDemoData()">🎲 Données démo</button>
+    <button class="btn btn-primary" onclick="$('filePointeuse').click()">📂 Importer pointeuse</button>
+    <button class="btn btn-secondary" onclick="$('fileContrats').click()">📜 Importer contrats</button>
+    <input type="file" id="filePointeuse" accept=".csv,.txt" style="display:none" onchange="handleFile(event,'pointeuse')">
+    <input type="file" id="fileContrats" accept=".csv,.txt" style="display:none" onchange="handleFile(event,'contrats')">
+  </div>
+</div>
+</header>
+
+<main class="main">
+<div class="tabs" id="tabsBar"></div>
+
+<div id="tab-import" class="tab-panel active"></div>
+<div id="tab-dashboard" class="tab-panel"></div>
+<div id="tab-pointage" class="tab-panel"></div>
+<div id="tab-retards" class="tab-panel"></div>
+<div id="tab-retard-pointage" class="tab-panel"></div>
+<div id="tab-financier" class="tab-panel"></div>
+<div id="tab-detail" class="tab-panel"></div>
+<div id="tab-export" class="tab-panel"></div>
+</main>
+
+<script>
+const $=id=>document.getElementById(id);
+
+// ==================== STATE ====================
+let rawScans=[], families={}, analysisResults=null;
+let config={sep:';',colDate:0,colHeure:1,colNom:2,colSens:3,dateFormat:'dd/mm/yyyy',tolerance:5,seuilOubli:3,seuilRetard:3,seuilPointage:3};
+
+// ==================== TABS ====================
+const TABS=[
+  {id:'import',icon:'📥',label:'Import & Config'},
+  {id:'dashboard',icon:'📊',label:'Tableau de bord'},
+  {id:'pointage',icon:'🔴',label:'Oublis de scan'},
+  {id:'retards',icon:'⏰',label:'Retards horaires'},
+  {id:'retard-pointage',icon:'⚡',label:'Retards de pointage'},
+  {id:'financier',icon:'💰',label:'Impact financier'},
+  {id:'detail',icon:'👨‍👩‍👧',label:'Détail famille'},
+  {id:'export',icon:'📋',label:'Export'},
+];
+
+function initTabs(){
+  $('tabsBar').innerHTML=TABS.map(t=>`<button class="tab${t.id==='import'?' active':''}" data-tab="${t.id}" onclick="switchTab('${t.id}')">${t.icon} ${t.label}</button>`).join('');
+}
+
+function switchTab(id){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  $('tab-'+id).classList.add('active');
+  document.querySelector(`.tab[data-tab="${id}"]`)?.classList.add('active');
+}
+
+// ==================== IMPORT TAB ====================
+function renderImportTab(){
+  $('tab-import').innerHTML=`
+  <div class="two-cols">
+    <div class="card">
+      <div class="card-header"><div class="card-title">📂 Fichier pointeuse</div></div>
+      <div class="upload-zone" onclick="$('filePointeuse').click()"
+        ondragover="event.preventDefault();this.classList.add('dragover')"
+        ondragleave="this.classList.remove('dragover')"
+        ondrop="handleDrop(event,'pointeuse')">
+        <div class="icon">📋</div>
+        <h3>Déposez le CSV pointeuse</h3>
+        <p>Date;Heure;Nom_Enfant;Sens (A/D)</p>
+      </div>
+      <div id="statusPointeuse" style="margin-top:10px"></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">📜 Fichier contrats</div></div>
+      <div class="upload-zone" onclick="$('fileContrats').click()"
+        ondragover="event.preventDefault();this.classList.add('dragover')"
+        ondragleave="this.classList.remove('dragover')"
+        ondrop="handleDrop(event,'contrats')">
+        <div class="icon">📄</div>
+        <h3>Déposez le CSV contrats</h3>
+        <p>Enfant;Jours;Heure_Arr;Heure_Dep;Taux_EUR;Type</p>
+      </div>
+      <div id="statusContrats" style="margin-top:10px"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">⚙️ Configuration</div>
+      <span class="info-tip" data-tip="Adaptez au format de votre logiciel de pointeuse. Les seuils déclenchent les alertes.">?</span>
+    </div>
+    <div class="config-grid">
+      <div class="config-group"><label>Séparateur CSV</label>
+        <select id="csvSep" onchange="config.sep=this.value==='\\\\t'?'\\t':this.value">
+          <option value=";">Point-virgule (;)</option><option value=",">Virgule</option><option value="\\t">Tab</option>
+        </select></div>
+      <div class="config-group"><label>Format date</label>
+        <select id="dateFormat" onchange="config.dateFormat=this.value">
+          <option value="dd/mm/yyyy">JJ/MM/AAAA</option><option value="yyyy-mm-dd">AAAA-MM-JJ</option>
+        </select></div>
+      <div class="config-group"><label>Tolérance pointage (min)</label>
+        <input type="number" value="5" min="0" max="30" onchange="config.tolerance=+this.value;if(rawScans.length)runAnalysis()"></div>
+      <div class="config-group"><label>Seuil alerte oublis (/mois)</label>
+        <input type="number" value="3" min="1" onchange="config.seuilOubli=+this.value;if(rawScans.length)runAnalysis()"></div>
+      <div class="config-group"><label>Seuil alerte retards (/mois)</label>
+        <input type="number" value="3" min="1" onchange="config.seuilRetard=+this.value;if(rawScans.length)runAnalysis()"></div>
+      <div class="config-group"><label>Seuil retard pointage (/mois)</label>
+        <input type="number" value="3" min="1" onchange="config.seuilPointage=+this.value;if(rawScans.length)runAnalysis()"></div>
+    </div>
+  </div>
+
+  <div class="card" id="contratsCard" style="display:none">
+    <div class="card-header">
+      <div class="card-title">📜 Contrats chargés</div>
+      <span class="badge badge-info" id="contratsCount"></span>
+    </div>
+    <div class="table-container">
+      <table><thead><tr><th>Enfant</th><th>Jours</th><th>Arrivée</th><th>Départ</th><th>Taux €/h</th><th>Type</th></tr></thead>
+      <tbody id="contratsTbody"></tbody></table>
+    </div>
+  </div>`;
+}
+
+// ==================== FILE HANDLING ====================
+function handleDrop(e,type){e.preventDefault();e.target.closest('.upload-zone').classList.remove('dragover');processFile(e.dataTransfer.files[0],type)}
+function handleFile(e,type){processFile(e.target.files[0],type)}
+
+function processFile(file,type){
+  if(!file)return;
+  const r=new FileReader();
+  r.onload=e=>{type==='contrats'?parseContrats(e.target.result):parsePointeuse(e.target.result)};
+  r.readAsText(file,'UTF-8');
+}
+
+function parsePointeuse(text){
+  const sep=config.sep;
+  const lines=text.split('\n').map(l=>l.trim().replace(/\r/g,'')).filter(l=>l);
+  const start=/\d/.test(lines[0].split(sep)[config.colDate]?.charAt(0))?0:1;
+  rawScans=[];let errors=0;
+
+  for(let i=start;i<lines.length;i++){
+    const c=lines[i].split(sep).map(s=>s.trim().replace(/"/g,''));
+    if(c.length<4){errors++;continue}
+    const date=parseDate(c[config.colDate],config.dateFormat);
+    const tp=c[config.colHeure].match(/(\d{1,2})[h:.](\d{2})/);
+    if(!date||!tp){errors++;continue}
+    const tm=parseInt(tp[1])*60+parseInt(tp[2]);
+    const sens=c[config.colSens]?.toUpperCase();
+    rawScans.push({date,dateStr:c[config.colDate],heure:c[config.colHeure],timeMinutes:tm,
+      nom:c[config.colNom],sens:('AEI'.includes(sens?.charAt(0))||sens==='IN'||sens==='ENTREE'||sens==='ARRIVÉE'||sens==='ARRIVEE')?'A':'D'});
+  }
+  rawScans.sort((a,b)=>a.date-b.date||a.timeMinutes-b.timeMinutes);
+
+  const st=$('statusPointeuse');
+  st.innerHTML=`<span class="badge badge-success">✅ ${rawScans.length} pointages</span>
+    ${errors?`<span class="badge badge-warning">⚠️ ${errors} ignorées</span>`:''}
+    <span class="badge badge-info">👶 ${new Set(rawScans.map(r=>r.nom)).size} enfants</span>`;
+
+  // Auto-create families for children not in contrats
+  const names=[...new Set(rawScans.map(r=>r.nom))];
+  names.forEach(n=>{if(!families[n])families[n]={contratArr:8*60,contratDep:17*60+30,taux:3.00,jours:[0,1,2,3,4],type:'Défaut'}});
+  runAnalysis();
+}
+
+function parseContrats(text){
+  const sep=config.sep;
+  const lines=text.split('\n').map(l=>l.trim().replace(/\r/g,'')).filter(l=>l);
+  const start=lines[0].toLowerCase().includes('enfant')?1:0;
+  let count=0;
+
+  const jourMap={'lundi':0,'mardi':1,'mercredi':2,'jeudi':3,'vendredi':4,'lun':0,'mar':1,'mer':2,'jeu':3,'ven':4};
+
+  for(let i=start;i<lines.length;i++){
+    const c=lines[i].split(sep).map(s=>s.trim().replace(/"/g,''));
+    if(c.length<5)continue;
+    const nom=c[0];
+    const joursStr=c[1].toLowerCase();
+    const jours=[];
+    for(const[k,v]of Object.entries(jourMap)){if(joursStr.includes(k))jours.push(v)}
+    jours.sort();
+    const arr=timeToMin(c[2]);
+    const dep=timeToMin(c[3]);
+    const taux=parseFloat(c[4].replace(',','.'));
+    const type=c[5]||'';
+
+    families[nom]={contratArr:arr,contratDep:dep,taux:isNaN(taux)?3.00:taux,jours:jours.length?jours:[0,1,2,3,4],type};
+    count++;
+  }
+
+  $('statusContrats').innerHTML=`<span class="badge badge-success">✅ ${count} contrats chargés</span>`;
+  showContratsTable();
+  if(rawScans.length)runAnalysis();
+}
+
+function showContratsTable(){
+  const card=$('contratsCard');card.style.display='block';
+  $('contratsCount').textContent=Object.keys(families).length+' familles';
+  const jourL={0:'L',1:'Ma',2:'Me',3:'J',4:'V'};
+  $('contratsTbody').innerHTML=Object.entries(families).sort((a,b)=>a[0].localeCompare(b[0])).map(([n,f])=>`<tr>
+    <td><strong>${n}</strong></td>
+    <td>${f.jours.map(j=>jourL[j]).join(', ')}</td>
+    <td>${minToTime(f.contratArr)}</td><td>${minToTime(f.contratDep)}</td>
+    <td>${f.taux.toFixed(2)} €</td><td style="font-size:.78rem;color:var(--text-muted)">${f.type}</td>
+  </tr>`).join('');
+}
+
+// ==================== HELPERS ====================
+function parseDate(str,fmt){
+  const p=str.split(/[\/\-\.]/);if(p.length!==3)return null;
+  let d,m,y;
+  if(fmt==='dd/mm/yyyy'){d=+p[0];m=+p[1]-1;y=+p[2]}
+  else if(fmt==='yyyy-mm-dd'){y=+p[0];m=+p[1]-1;d=+p[2]}
+  else{m=+p[0]-1;d=+p[1];y=+p[2]}
+  if(y<100)y+=2000;const dt=new Date(y,m,d);return isNaN(dt)?null:dt;
+}
+function minToTime(m){return`${String(Math.floor(m/60)).padStart(2,'0')}:${String(Math.abs(m%60)).padStart(2,'0')}`}
+function timeToMin(s){const p=s.match(/(\d{1,2})[h:.](\d{2})/);return p?(parseInt(p[1])*60+parseInt(p[2])):0}
+
+// ==================== ANALYSIS ENGINE ====================
+function runAnalysis(){
+  const tol=config.tolerance, sOubli=config.seuilOubli, sRetard=config.seuilRetard, sPointage=config.seuilPointage;
+  const SEUIL_RETARD_POINTAGE=15; // min: écart suspect = probablement scan décalé
+
+  // Group scans
+  const grouped={};
+  rawScans.forEach(r=>{
+    if(!grouped[r.nom])grouped[r.nom]={};
+    const dk=r.date.toISOString().split('T')[0];
+    if(!grouped[r.nom][dk])grouped[r.nom][dk]=[];
+    grouped[r.nom][dk].push(r);
+  });
+
+  const childNames=[...new Set(rawScans.map(r=>r.nom))];
+
+  // Compute per-family working days based on contract
+  const allDatesSet=new Set(rawScans.map(r=>r.date.toISOString().split('T')[0]));
+  const allDates=[...allDatesSet].sort();
+
+  const results={};
+  childNames.forEach(name=>{
+    const f=families[name]||{contratArr:8*60,contratDep:17*60+30,taux:3.00,jours:[0,1,2,3,4],type:'Défaut'};
+    const days=grouped[name]||{};
+
+    // Compute expected days (only days this child should come)
+    const expectedDays=allDates.filter(dk=>{
+      const wd=new Date(dk).getDay();
+      const pyWd=(wd+6)%7; // JS: 0=Sun -> Python-like: 0=Mon
+      return f.jours.includes(pyWd);
+    });
+
+    const a={
+      nom:name, contratArr:f.contratArr, contratDep:f.contratDep, taux:f.taux, jours:f.jours, type:f.type,
+      totalJoursOuvres:allDates.length,
+      totalJoursContrat:expectedDays.length,
+      joursPresent:0,
+      oublis:{total:0,details:[]},
+      retardsArrivee:{total:0,details:[],totalMin:0},
+      retardsDepart:{total:0,details:[],totalMin:0},
+      avancesArrivee:{total:0,details:[],totalMin:0},
+      retardPointageMatin:{total:0,details:[],totalMin:0},
+      retardPointageSoir:{total:0,details:[],totalMin:0},
+      doublons:0,
+      journees:{},
+      // Financial impact
+      impactMinutes:0,
+      impactEuros:0,
+    };
+
+    expectedDays.forEach(dk=>{
+      const scans=days[dk]||[];
+      const arrivals=scans.filter(s=>s.sens==='A');
+      const departures=scans.filter(s=>s.sens==='D');
+      const jour={date:dk,arrivals:arrivals.map(x=>x.timeMinutes),departures:departures.map(x=>x.timeMinutes),issues:[]};
+
+      if(scans.length===0){
+        jour.issues.push({type:'absent_ou_oubli',label:'Absent ou oubli total',impact:0});
+        a.oublis.total++;a.oublis.details.push({date:dk,type:'total'});
+      } else {
+        a.joursPresent++;
+
+        // Missing scans
+        if(arrivals.length===0&&departures.length>0){
+          jour.issues.push({type:'oubli_arrivee',label:'Arrivée non scannée'});
+          a.oublis.total++;a.oublis.details.push({date:dk,type:'arrivee'});
+        }
+        if(departures.length===0&&arrivals.length>0){
+          jour.issues.push({type:'oubli_depart',label:'Départ non scanné'});
+          a.oublis.total++;a.oublis.details.push({date:dk,type:'depart'});
+        }
+
+        // Arrival analysis
+        if(arrivals.length>0){
+          const firstArr=Math.min(...arrivals.map(x=>x.timeMinutes));
+          const ecart=firstArr-f.contratArr;
+
+          if(ecart>tol){
+            // Is it a real late arrival or a pointage delay?
+            if(ecart>=SEUIL_RETARD_POINTAGE){
+              // Retard de pointage suspect (>= 15min after contract)
+              jour.issues.push({type:'retard_pointage_matin',label:`⚡ Scan +${ecart}min`,ecart});
+              a.retardPointageMatin.total++;
+              a.retardPointageMatin.totalMin+=ecart;
+              a.retardPointageMatin.details.push({date:dk,ecart,heure:minToTime(firstArr)});
+              a.impactMinutes+=ecart;
+            } else {
+              // Simple retard < seuil pointage
+              jour.issues.push({type:'retard_arrivee',label:`Arrivée +${ecart}min`,ecart});
+              a.retardsArrivee.total++;
+              a.retardsArrivee.totalMin+=ecart;
+              a.retardsArrivee.details.push({date:dk,ecart,heure:minToTime(firstArr)});
+              a.impactMinutes+=ecart;
+            }
+          }
+          if(ecart<-tol){
+            jour.issues.push({type:'avance_arrivee',label:`Arrivée ${ecart}min`,ecart});
+            a.avancesArrivee.total++;
+            a.avancesArrivee.totalMin+=Math.abs(ecart);
+            a.avancesArrivee.details.push({date:dk,ecart,heure:minToTime(firstArr)});
+            a.impactMinutes+=Math.abs(ecart);
+          }
+        }
+
+        // Departure analysis
+        if(departures.length>0){
+          const lastDep=Math.max(...departures.map(x=>x.timeMinutes));
+          const ecart=lastDep-f.contratDep;
+
+          if(ecart>tol){
+            jour.issues.push({type:'retard_depart',label:`Départ +${ecart}min`,ecart});
+            a.retardsDepart.total++;
+            a.retardsDepart.totalMin+=ecart;
+            a.retardsDepart.details.push({date:dk,ecart,heure:minToTime(lastDep)});
+            a.impactMinutes+=ecart;
+          }
+          if(ecart<-SEUIL_RETARD_POINTAGE){
+            // Scan départ bien avant la fin du contrat = scan avant récup
+            const absEcart=Math.abs(ecart);
+            jour.issues.push({type:'retard_pointage_soir',label:`⚡ Scan -${absEcart}min`,ecart});
+            a.retardPointageSoir.total++;
+            a.retardPointageSoir.totalMin+=absEcart;
+            a.retardPointageSoir.details.push({date:dk,ecart,heure:minToTime(lastDep)});
+            a.impactMinutes+=absEcart;
+          }
+        }
+
+        // Doublons
+        if(arrivals.length>1){a.doublons++;jour.issues.push({type:'doublon',label:`${arrivals.length}× scan arr.`})}
+        if(departures.length>1){a.doublons++;jour.issues.push({type:'doublon',label:`${departures.length}× scan dép.`})}
+      }
+      a.journees[dk]=jour;
+    });
+
+    // Financial impact = minutes écart × taux horaire / 60
+    a.impactEuros=Math.round(a.impactMinutes*f.taux/60*100)/100;
+
+    // Scores & alerts
+    a.scoreOubli=a.oublis.total;
+    a.scoreRetard=a.retardsArrivee.total+a.retardsDepart.total+a.avancesArrivee.total;
+    a.scorePointage=a.retardPointageMatin.total+a.retardPointageSoir.total;
+    a.alerteOubli=a.scoreOubli>=sOubli;
+    a.alerteRetard=a.scoreRetard>=sRetard;
+    a.alertePointage=a.scorePointage>=sPointage;
+    a.severite=Math.min(100,Math.round((a.scoreOubli*3+a.scoreRetard*2+a.scorePointage*2.5+a.doublons)/(a.totalJoursContrat||1)*100));
+
+    results[name]=a;
+  });
+
+  analysisResults=results;
+  renderAll();
+}
+
+function renderAll(){
+  renderDashboard();
+  renderOublis();
+  renderRetards();
+  renderRetardPointage();
+  renderFinancier();
+  renderExport();
+}
+
+// ==================== DASHBOARD ====================
+function renderDashboard(){
+  const R=Object.values(analysisResults);
+  const totOublis=R.reduce((s,a)=>s+a.oublis.total,0);
+  const totRetards=R.reduce((s,a)=>s+a.scoreRetard,0);
+  const totPtg=R.reduce((s,a)=>s+a.scorePointage,0);
+  const famOubli=R.filter(a=>a.alerteOubli).length;
+  const famRetard=R.filter(a=>a.alerteRetard).length;
+  const famPtg=R.filter(a=>a.alertePointage).length;
+  const totImpact=R.reduce((s,a)=>s+a.impactEuros,0);
+  const totMin=R.reduce((s,a)=>s+a.impactMinutes,0);
+
+  $('tab-dashboard').innerHTML=`
+  <div class="stats-row">
+    <div class="stat-card info"><div class="stat-value">${R.length}</div><div class="stat-label">Enfants suivis</div></div>
+    <div class="stat-card danger"><div class="stat-value">${totOublis}</div><div class="stat-label">Oublis de scan</div></div>
+    <div class="stat-card warning"><div class="stat-value">${totRetards}</div><div class="stat-label">Retards horaires</div></div>
+    <div class="stat-card purple"><div class="stat-value">${totPtg}</div><div class="stat-label">Retards de pointage</div></div>
+    <div class="stat-card danger"><div class="stat-value">${famOubli+famRetard+famPtg}</div><div class="stat-label">Familles en alerte</div></div>
+    <div class="stat-card danger"><div class="stat-value">${totImpact.toFixed(0)} €</div><div class="stat-label">Impact financier estimé</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📋 Vue d'ensemble — triée par sévérité</div>
+      <div class="filter-bar">
+        <input type="search" placeholder="🔍 Filtrer par nom…" oninput="filterDashboard(this.value)">
+        <select onchange="filterDashboardStatus(this.value)">
+          <option value="all">Toutes</option><option value="alert">En alerte</option><option value="ok">OK</option>
+        </select>
+      </div>
+    </div>
+    <div class="table-container"><table>
+      <thead><tr>
+        <th>Enfant</th><th>Contrat</th><th>Taux €/h</th><th>Présence</th>
+        <th>Oublis</th><th>Retards</th><th>Ptg ⚡</th><th>Impact €</th><th>Sévérité</th><th>Alertes</th>
+      </tr></thead>
+      <tbody id="dashTbody">
+      ${R.sort((a,b)=>b.severite-a.severite).map(a=>{
+        const jourL={0:'L',1:'Ma',2:'Me',3:'J',4:'V'};
+        const cls=a.alerteOubli||a.alerteRetard||a.alertePointage?(a.severite>40?'row-danger':'row-warning'):'';
+        return`<tr class="${cls}" data-name="${a.nom.toLowerCase()}" data-alert="${a.alerteOubli||a.alerteRetard||a.alertePointage?'alert':'ok'}" onclick="showDetail('${a.nom}')" style="cursor:pointer">
+          <td><strong>${a.nom}</strong></td>
+          <td style="font-size:.78rem">${a.jours.map(j=>jourL[j]).join('')} ${minToTime(a.contratArr)}→${minToTime(a.contratDep)}</td>
+          <td>${a.taux.toFixed(2)}</td>
+          <td>${a.joursPresent}/${a.totalJoursContrat}</td>
+          <td>${a.oublis.total?`<span class="badge badge-danger">${a.oublis.total}</span>`:'<span class="badge badge-success">0</span>'}</td>
+          <td>${a.scoreRetard?`<span class="badge badge-warning">${a.scoreRetard}</span>`:'<span class="badge badge-success">0</span>'}</td>
+          <td>${a.scorePointage?`<span class="badge badge-purple">${a.scorePointage}</span>`:'<span class="badge badge-success">0</span>'}</td>
+          <td style="font-weight:600;color:${a.impactEuros>10?'var(--danger)':a.impactEuros>3?'var(--warning)':'var(--text-muted)'}">${a.impactEuros.toFixed(2)}</td>
+          <td><div class="severity-bar"><div class="severity-fill" style="width:${a.severite}%;background:${a.severite>40?'var(--danger)':a.severite>20?'var(--warning)':'var(--success)'}"></div></div>
+            <span style="font-size:.72rem;color:var(--text-muted)">${a.severite}%</span></td>
+          <td style="font-size:.72rem">
+            ${a.alerteOubli?'<span class="badge badge-danger">Oublis</span> ':''}
+            ${a.alerteRetard?'<span class="badge badge-warning">Retards</span> ':''}
+            ${a.alertePointage?'<span class="badge badge-purple">Pointage</span> ':''}
+            ${!a.alerteOubli&&!a.alerteRetard&&!a.alertePointage?'<span class="badge badge-success">✅</span>':''}
+          </td></tr>`}).join('')}
+      </tbody>
+    </table></div>
+  </div>`;
+}
+
+function filterDashboard(q){
+  q=q.toLowerCase();
+  document.querySelectorAll('#dashTbody tr').forEach(r=>{r.style.display=r.dataset.name.includes(q)?'':'none'});
+}
+function filterDashboardStatus(v){
+  document.querySelectorAll('#dashTbody tr').forEach(r=>{r.style.display=v==='all'||(r.dataset.alert===v)?'':'none'});
+}
+
+// ==================== OUBLIS ====================
+function renderOublis(){
+  const alertes=Object.values(analysisResults).filter(a=>a.alerteOubli).sort((a,b)=>b.scoreOubli-a.scoreOubli);
+  if(!alertes.length){$('tab-pointage').innerHTML=emptyState('✅','Aucune alerte oubli','Toutes les familles scannent correctement.');return}
+
+  $('tab-pointage').innerHTML=`
+  <div class="stats-row">
+    <div class="stat-card danger"><div class="stat-value">${alertes.length}</div><div class="stat-label">Familles en alerte</div></div>
+    <div class="stat-card danger"><div class="stat-value">${alertes.reduce((s,a)=>s+a.oublis.total,0)}</div><div class="stat-label">Total oublis</div></div>
+  </div>
+  <div class="card"><div class="card-header"><div class="card-title">🔴 Familles avec oublis de scan récurrents</div></div>
+  <div class="table-container"><table><thead><tr>
+    <th>Enfant</th><th>Oublis</th><th>Sans scan</th><th>Arr. manquées</th><th>Dép. manqués</th><th>Taux oubli</th><th></th>
+  </tr></thead><tbody>
+  ${alertes.map(a=>{
+    const oA=a.oublis.details.filter(d=>d.type==='arrivee').length;
+    const oD=a.oublis.details.filter(d=>d.type==='depart').length;
+    const oT=a.oublis.details.filter(d=>d.type==='total').length;
+    const pct=Math.round(a.oublis.total/a.totalJoursContrat*100);
+    return`<tr class="row-danger"><td><strong>${a.nom}</strong></td>
+      <td><span class="badge badge-danger">${a.oublis.total}</span></td>
+      <td>${oT||'—'}</td><td>${oA||'—'}</td><td>${oD||'—'}</td>
+      <td><div class="severity-bar"><div class="severity-fill" style="width:${pct}%;background:var(--danger)"></div></div>${pct}%</td>
+      <td><button class="btn btn-outline btn-sm" onclick="showDetail('${a.nom}')">Détail</button></td></tr>`}).join('')}
+  </tbody></table></div></div>`;
+}
+
+// ==================== RETARDS ====================
+function renderRetards(){
+  const alertes=Object.values(analysisResults).filter(a=>a.alerteRetard).sort((a,b)=>b.scoreRetard-a.scoreRetard);
+  if(!alertes.length){$('tab-retards').innerHTML=emptyState('✅','Aucune alerte retard','Horaires contractuels respectés.');return}
+
+  $('tab-retards').innerHTML=`
+  <div class="stats-row">
+    <div class="stat-card warning"><div class="stat-value">${alertes.length}</div><div class="stat-label">Familles en alerte</div></div>
+    <div class="stat-card warning"><div class="stat-value">${alertes.reduce((s,a)=>s+a.scoreRetard,0)}</div><div class="stat-label">Total écarts</div></div>
+  </div>
+  <div class="card"><div class="card-header"><div class="card-title">⏰ Retards horaires réguliers</div></div>
+  <div class="table-container"><table><thead><tr>
+    <th>Enfant</th><th>Contrat</th><th>Ret. matin</th><th>Moy.</th><th>Ret. soir</th><th>Moy.</th><th>Avances</th><th>Type</th><th></th>
+  </tr></thead><tbody>
+  ${alertes.map(a=>{
+    const mRA=a.retardsArrivee.total?Math.round(a.retardsArrivee.totalMin/a.retardsArrivee.total):0;
+    const mRD=a.retardsDepart.total?Math.round(a.retardsDepart.totalMin/a.retardsDepart.total):0;
+    let badge='';
+    if(a.retardsArrivee.total>=a.retardsDepart.total&&a.retardsArrivee.total>=a.avancesArrivee.total) badge='<span class="badge badge-warning">☀️ Matin</span>';
+    else if(a.retardsDepart.total>a.avancesArrivee.total) badge='<span class="badge badge-danger">🌙 Soir</span>';
+    else badge='<span class="badge badge-info">⏪ Avance</span>';
+    return`<tr class="row-warning"><td><strong>${a.nom}</strong></td>
+      <td style="font-size:.78rem">${minToTime(a.contratArr)}→${minToTime(a.contratDep)}</td>
+      <td>${a.retardsArrivee.total?`<span class="badge badge-warning">${a.retardsArrivee.total}</span>`:'—'}</td>
+      <td>${mRA?`+${mRA}min`:'—'}</td>
+      <td>${a.retardsDepart.total?`<span class="badge badge-warning">${a.retardsDepart.total}</span>`:'—'}</td>
+      <td>${mRD?`+${mRD}min`:'—'}</td>
+      <td>${a.avancesArrivee.total?`<span class="badge badge-info">${a.avancesArrivee.total}</span>`:'—'}</td>
+      <td>${badge}</td>
+      <td><button class="btn btn-outline btn-sm" onclick="showDetail('${a.nom}')">Détail</button></td></tr>`}).join('')}
+  </tbody></table></div></div>`;
+}
+
+// ==================== RETARDS DE POINTAGE ====================
+function renderRetardPointage(){
+  const alertes=Object.values(analysisResults).filter(a=>a.alertePointage).sort((a,b)=>b.scorePointage-a.scorePointage);
+  if(!alertes.length){$('tab-retard-pointage').innerHTML=emptyState('✅','Aucune alerte pointage décalé','Tous les scans sont cohérents avec les horaires.');return}
+
+  $('tab-retard-pointage').innerHTML=`
+  <div class="card" style="background:linear-gradient(135deg,var(--purple-soft),#FFF);border-color:#CE93D8;margin-bottom:18px">
+    <p style="font-size:.88rem;color:var(--purple)">
+      <strong>⚡ Retard de pointage</strong> = le parent scanne bien trop tard le matin (après avoir posé l'enfant en classe) ou bien trop tôt le soir (avant d'avoir récupéré l'enfant). 
+      Ces écarts faussent les données CAF : l'enfant est présent mais le pointage ne le reflète pas correctement.
+    </p>
+  </div>
+  <div class="stats-row">
+    <div class="stat-card purple"><div class="stat-value">${alertes.length}</div><div class="stat-label">Familles concernées</div></div>
+    <div class="stat-card purple"><div class="stat-value">${alertes.reduce((s,a)=>s+a.scorePointage,0)}</div><div class="stat-label">Total scans décalés</div></div>
+    <div class="stat-card purple"><div class="stat-value">${alertes.reduce((s,a)=>s+a.retardPointageMatin.totalMin+a.retardPointageSoir.totalMin,0)} min</div><div class="stat-label">Minutes perdues</div></div>
+  </div>
+  <div class="card"><div class="card-header"><div class="card-title">⚡ Scans décalés — pointage incorrect</div></div>
+  <div class="table-container"><table><thead><tr>
+    <th>Enfant</th><th>Contrat</th><th>⚡ Matin (scan tard)</th><th>Moy. écart</th><th>⚡ Soir (scan tôt)</th><th>Moy. écart</th><th>Impact €</th><th></th>
+  </tr></thead><tbody>
+  ${alertes.map(a=>{
+    const mM=a.retardPointageMatin.total?Math.round(a.retardPointageMatin.totalMin/a.retardPointageMatin.total):0;
+    const mS=a.retardPointageSoir.total?Math.round(a.retardPointageSoir.totalMin/a.retardPointageSoir.total):0;
+    const impact=Math.round((a.retardPointageMatin.totalMin+a.retardPointageSoir.totalMin)*a.taux/60*100)/100;
+    return`<tr class="row-warning"><td><strong>${a.nom}</strong></td>
+      <td style="font-size:.78rem">${minToTime(a.contratArr)}→${minToTime(a.contratDep)}</td>
+      <td>${a.retardPointageMatin.total?`<span class="badge badge-purple">${a.retardPointageMatin.total}×</span>`:'—'}</td>
+      <td>${mM?`+${mM}min`:'—'}</td>
+      <td>${a.retardPointageSoir.total?`<span class="badge badge-purple">${a.retardPointageSoir.total}×</span>`:'—'}</td>
+      <td>${mS?`-${mS}min`:'—'}</td>
+      <td style="font-weight:700;color:var(--danger)">${impact.toFixed(2)} €</td>
+      <td><button class="btn btn-outline btn-sm" onclick="showDetail('${a.nom}')">Détail</button></td></tr>`}).join('')}
+  </tbody></table></div></div>`;
+}
+
+// ==================== IMPACT FINANCIER ====================
+function renderFinancier(){
+  const R=Object.values(analysisResults).sort((a,b)=>b.impactEuros-a.impactEuros);
+  const totalImpact=R.reduce((s,a)=>s+a.impactEuros,0);
+  const totalMin=R.reduce((s,a)=>s+a.impactMinutes,0);
+  const totalH=Math.floor(totalMin/60);
+  const restMin=totalMin%60;
+  const famImpact=R.filter(a=>a.impactEuros>1).length;
+  const top5=R.slice(0,5);
+  const pctTop5=totalImpact>0?Math.round(top5.reduce((s,a)=>s+a.impactEuros,0)/totalImpact*100):0;
+
+  $('tab-financier').innerHTML=`
+  <div class="impact-box">
+    <h3>💰 Impact financier total estimé — Février 2026</h3>
+    <div style="display:flex;gap:40px;flex-wrap:wrap;align-items:baseline">
+      <div><div class="impact-value">${totalImpact.toFixed(2)} €</div><div style="font-size:.82rem;color:var(--danger)">Écart total vs contrats</div></div>
+      <div><div style="font-family:'Fraunces',serif;font-size:1.6rem;font-weight:700;color:var(--text)">${totalH}h${String(restMin).padStart(2,'0')}</div><div style="font-size:.82rem;color:var(--text-muted)">Minutes hors contrat</div></div>
+      <div><div style="font-family:'Fraunces',serif;font-size:1.6rem;font-weight:700;color:var(--warning)">${famImpact}</div><div style="font-size:.82rem;color:var(--text-muted)">Familles avec impact &gt; 1€</div></div>
+    </div>
+    <p style="margin-top:12px;font-size:.82rem;color:var(--danger);opacity:.8">
+      ⚠️ Ces écarts (oublis, retards, scans décalés) peuvent entraîner des non-versements de subventions CAF.
+      Calcul : minutes d'écart × taux horaire contractuel.
+    </p>
+  </div>
+
+  <div class="two-cols">
+    <div class="card">
+      <div class="card-header"><div class="card-title">🏆 Top 10 — Plus gros impacts</div></div>
+      <div class="table-container"><table><thead><tr>
+        <th>#</th><th>Enfant</th><th>Taux</th><th>Min. écart</th><th>Impact €</th><th>Causes</th>
+      </tr></thead><tbody>
+      ${R.slice(0,10).map((a,i)=>{
+        let causes=[];
+        if(a.oublis.total)causes.push(`${a.oublis.total} oublis`);
+        if(a.retardsArrivee.total)causes.push(`${a.retardsArrivee.total} ret.mat.`);
+        if(a.retardsDepart.total)causes.push(`${a.retardsDepart.total} ret.soir`);
+        if(a.retardPointageMatin.total)causes.push(`${a.retardPointageMatin.total}⚡mat.`);
+        if(a.retardPointageSoir.total)causes.push(`${a.retardPointageSoir.total}⚡soir`);
+        if(a.avancesArrivee.total)causes.push(`${a.avancesArrivee.total} avances`);
+        return`<tr onclick="showDetail('${a.nom}')" style="cursor:pointer">
+          <td style="font-weight:700;color:var(--text-muted)">${i+1}</td>
+          <td><strong>${a.nom}</strong></td>
+          <td>${a.taux.toFixed(2)} €</td>
+          <td>${a.impactMinutes} min</td>
+          <td style="font-weight:700;color:var(--danger)">${a.impactEuros.toFixed(2)} €</td>
+          <td style="font-size:.76rem">${causes.join(', ')}</td></tr>`}).join('')}
+      </tbody></table></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><div class="card-title">📊 Répartition des causes</div></div>
+      <div style="padding:10px 0">
+        ${renderCauseBar('Oublis de scan',R.reduce((s,a)=>s+a.oublis.total,0),'var(--danger)')}
+        ${renderCauseBar('Retards matin',R.reduce((s,a)=>s+a.retardsArrivee.total,0),'var(--warning)')}
+        ${renderCauseBar('Retards soir',R.reduce((s,a)=>s+a.retardsDepart.total,0),'#EF6C00')}
+        ${renderCauseBar('⚡ Scan tardif matin',R.reduce((s,a)=>s+a.retardPointageMatin.total,0),'var(--purple)')}
+        ${renderCauseBar('⚡ Scan anticipé soir',R.reduce((s,a)=>s+a.retardPointageSoir.total,0),'#AB47BC')}
+        ${renderCauseBar('Arrivées avancées',R.reduce((s,a)=>s+a.avancesArrivee.total,0),'var(--info)')}
+      </div>
+      <p style="font-size:.78rem;color:var(--text-muted);margin-top:12px">
+        Les 5 premières familles concentrent <strong>${pctTop5}%</strong> de l'impact financier total.
+      </p>
+    </div>
+  </div>`;
+}
+
+function renderCauseBar(label,count,color){
+  const maxC=Math.max(1,...Object.values(analysisResults||{}).map(a=>a.oublis.total+a.scoreRetard+a.scorePointage));
+  const maxAll=Object.values(analysisResults||{}).reduce((s,a)=>s+a.oublis.total+a.scoreRetard+a.scorePointage,0);
+  const pct=maxAll?Math.round(count/maxAll*100):0;
+  return`<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+    <span style="font-size:.8rem;min-width:160px;text-align:right;color:var(--text-muted)">${label}</span>
+    <div style="flex:1;background:#eee;border-radius:4px;height:22px;position:relative;overflow:hidden">
+      <div style="width:${pct}%;background:${color};height:100%;border-radius:4px;transition:width .5s"></div>
+    </div>
+    <span style="font-size:.82rem;font-weight:600;min-width:50px">${count} (${pct}%)</span>
+  </div>`;
+}
+
+// ==================== DETAIL FAMILLE ====================
+function showDetail(nom){
+  switchTab('detail');
+  const a=analysisResults[nom];if(!a)return;
+  const jourL={0:'Lun',1:'Mar',2:'Mer',3:'Jeu',4:'Ven'};
+  const journees=Object.entries(a.journees).sort(([x],[y])=>x.localeCompare(y));
+
+  $('tab-detail').innerHTML=`
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">👶 ${a.nom}</div>
+      <div>
+        ${a.alerteOubli?'<span class="badge badge-danger">🔴 Oublis</span> ':''}
+        ${a.alerteRetard?'<span class="badge badge-warning">⏰ Retards</span> ':''}
+        ${a.alertePointage?'<span class="badge badge-purple">⚡ Pointage</span> ':''}
+        ${!a.alerteOubli&&!a.alerteRetard&&!a.alertePointage?'<span class="badge badge-success">✅ RAS</span>':''}
+      </div>
+    </div>
+    <div class="detail-grid">
+      <div class="detail-item"><label>Contrat</label><span>${a.jours.map(j=>jourL[j]).join(', ')} · ${minToTime(a.contratArr)} → ${minToTime(a.contratDep)}</span></div>
+      <div class="detail-item"><label>Taux horaire</label><span>${a.taux.toFixed(2)} €/h</span></div>
+      <div class="detail-item"><label>Présence</label><span>${a.joursPresent} / ${a.totalJoursContrat} jours</span></div>
+      <div class="detail-item"><label>Oublis scan</label><span style="color:${a.oublis.total?'var(--danger)':'var(--success)'}">${a.oublis.total}</span></div>
+      <div class="detail-item"><label>Retards horaires</label><span style="color:${a.scoreRetard?'var(--warning)':'var(--success)'}">${a.scoreRetard}</span></div>
+      <div class="detail-item"><label>Retards pointage ⚡</label><span style="color:${a.scorePointage?'var(--purple)':'var(--success)'}">${a.scorePointage}</span></div>
+      <div class="detail-item"><label>Impact financier</label><span style="color:var(--danger);font-size:1.1rem">${a.impactEuros.toFixed(2)} € (${a.impactMinutes} min)</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📅 Historique journalier</div>
+      <select onchange="filterDetail(this.value)" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans';font-size:.82rem">
+        <option value="all">Tous les jours</option><option value="issues">Avec anomalies</option>
+        <option value="oubli">Oublis</option><option value="retard">Retards</option><option value="pointage">Pointage ⚡</option>
+      </select>
+    </div>
+    <div class="table-container"><table><thead><tr>
+      <th>Date</th><th>Scan(s) arrivée</th><th>Contrat arr.</th><th>Scan(s) départ</th><th>Contrat dép.</th><th>Anomalies</th>
+    </tr></thead><tbody id="detailTbody">
+    ${journees.map(([dk,jour])=>{
+      const dt=new Date(dk);
+      const label=dt.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
+      const has=jour.issues.length>0;
+      const types=jour.issues.map(i=>i.type).join(',');
+      return`<tr data-types="${types}" style="${has?'background:var(--bg-warm)':''}">
+        <td><strong>${label}</strong></td>
+        <td>${jour.arrivals.length?jour.arrivals.map(m=>{
+          const e=m-a.contratArr;
+          const col=e>15?'var(--purple)':e>config.tolerance?'var(--warning)':e<-config.tolerance?'var(--info)':'var(--success)';
+          return`<span style="color:${col};font-weight:600">${minToTime(m)}</span>`;
+        }).join(', '):'<span style="color:var(--danger)">✕</span>'}</td>
+        <td style="font-size:.78rem;color:var(--text-light)">${minToTime(a.contratArr)}</td>
+        <td>${jour.departures.length?jour.departures.map(m=>{
+          const e=m-a.contratDep;
+          const col=e<-15?'var(--purple)':e>config.tolerance?'var(--warning)':'var(--success)';
+          return`<span style="color:${col};font-weight:600">${minToTime(m)}</span>`;
+        }).join(', '):'<span style="color:var(--danger)">✕</span>'}</td>
+        <td style="font-size:.78rem;color:var(--text-light)">${minToTime(a.contratDep)}</td>
+        <td>${jour.issues.length?jour.issues.map(i=>{
+          const c=i.type.includes('oubli')||i.type.includes('absent')?'badge-danger':i.type.includes('retard_pointage')?'badge-purple':i.type.includes('retard')?'badge-warning':i.type.includes('avance')?'badge-info':'badge-warning';
+          return`<span class="badge ${c}">${i.label}</span>`;
+        }).join(' '):'<span class="badge badge-success">OK</span>'}</td>
+      </tr>`}).join('')}
+    </tbody></table></div>
+  </div>`;
+}
+
+function filterDetail(v){
+  document.querySelectorAll('#detailTbody tr').forEach(r=>{
+    const t=r.dataset.types;
+    if(v==='all') r.style.display='';
+    else if(v==='issues') r.style.display=t?'':'none';
+    else if(v==='oubli') r.style.display=(t.includes('oubli')||t.includes('absent'))?'':'none';
+    else if(v==='retard') r.style.display=(t.includes('retard_arrivee')||t.includes('retard_depart')||t.includes('avance'))?'':'none';
+    else if(v==='pointage') r.style.display=t.includes('retard_pointage')?'':'none';
+  });
+}
+
+// ==================== EXPORT ====================
+function renderExport(){
+  const all=Object.values(analysisResults).filter(a=>a.alerteOubli||a.alerteRetard||a.alertePointage);
+  $('tab-export').innerHTML=`
+  <div class="card">
+    <div class="card-header"><div class="card-title">📋 Export & Courriers — ${all.length} famille(s) à alerter</div></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px">
+      <button class="btn btn-primary" onclick="exportCSV()">📊 Export CSV complet</button>
+      <button class="btn btn-outline" onclick="generateLetters()">✉️ Générer tous les courriers</button>
+    </div>
+    <div id="lettersOut"></div>
+  </div>`;
+}
+
+function exportCSV(){
+  let csv='Enfant;Contrat_Jours;Arr;Dep;Taux_EUR;Jours_Contrat;Jours_Présent;Oublis;Ret_Matin;Ret_Soir;Avances;Ptg_Matin;Ptg_Soir;Impact_Min;Impact_EUR;Sévérité;Alerte\n';
+  const jourL={0:'L',1:'Ma',2:'Me',3:'J',4:'V'};
+  Object.values(analysisResults).sort((a,b)=>b.severite-a.severite).forEach(a=>{
+    const alertes=[];if(a.alerteOubli)alertes.push('Oublis');if(a.alerteRetard)alertes.push('Retards');if(a.alertePointage)alertes.push('Pointage');
+    csv+=`${a.nom};${a.jours.map(j=>jourL[j]).join('')};${minToTime(a.contratArr)};${minToTime(a.contratDep)};${a.taux.toFixed(2)};${a.totalJoursContrat};${a.joursPresent};${a.oublis.total};${a.retardsArrivee.total};${a.retardsDepart.total};${a.avancesArrivee.total};${a.retardPointageMatin.total};${a.retardPointageSoir.total};${a.impactMinutes};${a.impactEuros.toFixed(2)};${a.severite}%;${alertes.join('+')||'OK'}\n`;
+  });
+  downloadFile(csv,'rapport_pointeuse_complet.csv','text/csv');
+}
+
+function generateLetters(){
+  const alertes=Object.values(analysisResults).filter(a=>a.alerteOubli||a.alerteRetard||a.alertePointage).sort((a,b)=>b.severite-a.severite);
+  const today=new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
+
+  $('lettersOut').innerHTML=alertes.map(a=>{
+    let txt=`Nantes, le ${today}\n\nObjet : Information – Suivi des pointages et horaires\n\nMadame, Monsieur,\n\nNous nous permettons de vous contacter au sujet de l'utilisation de la pointeuse et du respect des horaires contractuels pour votre enfant ${a.nom.split(' ').pop()} (contrat : ${minToTime(a.contratArr)} – ${minToTime(a.contratDep)}, taux ${a.taux.toFixed(2)} €/h).\n\nSur la période analysée (${a.totalJoursContrat} jours de contrat) :\n`;
+
+    if(a.alerteOubli){
+      const oA=a.oublis.details.filter(d=>d.type==='arrivee').length;
+      const oD=a.oublis.details.filter(d=>d.type==='depart').length;
+      const oT=a.oublis.details.filter(d=>d.type==='total').length;
+      txt+=`\n📌 POINTAGE — ${a.oublis.total} anomalie(s) :\n`;
+      if(oT)txt+=`  • ${oT} journée(s) sans aucun scan\n`;
+      if(oA)txt+=`  • ${oA} arrivée(s) non enregistrée(s)\n`;
+      if(oD)txt+=`  • ${oD} départ(s) non enregistré(s)\n`;
+      txt+=`Rappel : scannez AVANT de déposer votre enfant le matin, et APRÈS l'avoir récupéré le soir.\n`;
+    }
+    if(a.alerteRetard){
+      txt+=`\n📌 HORAIRES — écarts réguliers :\n`;
+      if(a.retardsArrivee.total){const m=Math.round(a.retardsArrivee.totalMin/a.retardsArrivee.total);txt+=`  • ${a.retardsArrivee.total} arrivée(s) en retard (moy. +${m} min)\n`}
+      if(a.retardsDepart.total){const m=Math.round(a.retardsDepart.totalMin/a.retardsDepart.total);txt+=`  • ${a.retardsDepart.total} récupération(s) tardive(s) (moy. +${m} min)\n`}
+      if(a.avancesArrivee.total) txt+=`  • ${a.avancesArrivee.total} arrivée(s) avant l'horaire contractuel\n`;
+    }
+    if(a.alertePointage){
+      txt+=`\n📌 RETARD DE POINTAGE — scans décalés :\n`;
+      if(a.retardPointageMatin.total){const m=Math.round(a.retardPointageMatin.totalMin/a.retardPointageMatin.total);txt+=`  • ${a.retardPointageMatin.total} scan(s) matin effectué(s) en moyenne ${m} min après l'heure contractuelle\n`}
+      if(a.retardPointageSoir.total){const m=Math.round(a.retardPointageSoir.totalMin/a.retardPointageSoir.total);txt+=`  • ${a.retardPointageSoir.total} scan(s) soir effectué(s) en moyenne ${m} min avant l'heure de fin de contrat\n`}
+      txt+=`Il est important de scanner au bon moment pour refléter la présence réelle de votre enfant.\n`;
+    }
+
+    txt+=`\n💰 Impact financier estimé : ${a.impactEuros.toFixed(2)} € (${a.impactMinutes} minutes hors contrat).\n`;
+    txt+=`Ces écarts ont un impact direct sur les subventions CAF et le fonctionnement de la structure.\n\n`;
+    txt+=`N'hésitez pas à nous contacter pour adapter votre contrat si nécessaire.\n\nCordialement,\nLa Direction`;
+
+    return`<div class="family-detail" style="margin-bottom:14px;border-left-color:${a.severite>40?'var(--danger)':'var(--warning)'}">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <strong>${a.nom} — ${a.impactEuros.toFixed(2)} €</strong>
+        <button class="btn btn-sm btn-outline" onclick="copyText(this)">📋 Copier</button>
+      </div>
+      <pre class="letter-text" style="background:#fff;padding:16px;border-radius:8px;font-size:.82rem;font-family:'DM Sans';white-space:pre-wrap;line-height:1.6">${txt}</pre>
+    </div>`;
+  }).join('');
+}
+
+function copyText(btn){
+  const t=btn.closest('.family-detail').querySelector('.letter-text').textContent;
+  navigator.clipboard.writeText(t).then(()=>{btn.textContent='✅ Copié!';setTimeout(()=>btn.textContent='📋 Copier',2000)});
+}
+
+function downloadFile(c,n,t){
+  const b=new Blob(['\uFEFF'+c],{type:t+';charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=n;a.click();URL.revokeObjectURL(a.href);
+}
+
+function emptyState(icon,title,msg){return`<div class="empty-state"><div class="icon">${icon}</div><h3>${title}</h3><p>${msg}</p></div>`}
+
+// ==================== DEMO ====================
+function loadDemoData(){
+  // Hardcoded demo — generates realistic data inline
+  const fams=[
+    {n:'DUPONT Léa',j:[0,1,2,3,4],a:'07:30',d:'18:00',t:3.74,p:'oublis_frequents'},
+    {n:'MARTIN Emma',j:[0,1,2,3,4],a:'08:00',d:'18:30',t:3.13,p:'oublis_frequents'},
+    {n:'BERNARD Lucas',j:[0,1,2,3,4],a:'08:30',d:'17:30',t:3.08,p:'oublis_frequents'},
+    {n:'PETIT Chloé',j:[0,1,2,3,4],a:'07:45',d:'17:00',t:2.92,p:'oublis_frequents'},
+    {n:'ROBERT Hugo',j:[0,1,2,3,4],a:'09:00',d:'18:00',t:3.14,p:'retard_matin'},
+    {n:'LEROY Alice',j:[0,1,3,4],a:'08:00',d:'18:00',t:3.68,p:'retard_matin'},
+    {n:'MOREAU Noah',j:[0,1,2,3],a:'08:30',d:'17:30',t:3.49,p:'retard_matin'},
+    {n:'SIMON Jade',j:[0,2,4],a:'08:00',d:'18:00',t:3.29,p:'retard_matin'},
+    {n:'LAURENT Louis',j:[1,3],a:'08:30',d:'17:00',t:3.82,p:'retard_soir'},
+    {n:'LEFEBVRE Manon',j:[0,1,2,3,4],a:'07:30',d:'17:30',t:2.63,p:'retard_soir'},
+    {n:'MICHEL Gabriel',j:[0,1,2,4],a:'08:15',d:'17:45',t:3.12,p:'retard_soir'},
+    {n:'GARCIA Inès',j:[0,2,3,4],a:'07:45',d:'18:15',t:3.56,p:'avance_matin'},
+    {n:'DAVID Raphaël',j:[0,1,2,3,4],a:'08:00',d:'17:00',t:2.53,p:'avance_matin'},
+    {n:'BERTRAND Louise',j:[1,2,3],a:'09:00',d:'17:30',t:3.50,p:'avance_matin'},
+    {n:'ROUX Ethan',j:[0,1,2,3,4],a:'08:00',d:'16:30',t:2.85,p:'retard_ptg_matin'},
+    {n:'FOURNIER Lina',j:[0,1,2,3,4],a:'07:30',d:'18:00',t:3.64,p:'retard_ptg_matin'},
+    {n:'GIRARD Adam',j:[0,1,2,3,4],a:'08:00',d:'18:30',t:3.32,p:'retard_ptg_matin'},
+    {n:'BONNET Rose',j:[0,1,2,3,4],a:'08:30',d:'17:30',t:3.39,p:'retard_ptg_matin'},
+    {n:'LAMBERT Arthur',j:[0,1,2,3,4],a:'07:45',d:'17:00',t:3.51,p:'retard_ptg_soir'},
+    {n:'FONTAINE Mila',j:[0,1,2,3,4],a:'09:00',d:'18:00',t:2.41,p:'retard_ptg_soir'},
+    {n:'ROUSSEAU Jules',j:[0,1,3,4],a:'08:00',d:'18:00',t:3.81,p:'retard_ptg_soir'},
+    {n:'VINCENT Ambre',j:[0,1,2,3],a:'08:30',d:'17:30',t:3.30,p:'retard_ptg_double'},
+    {n:'MULLER Gabin',j:[0,2,4],a:'08:00',d:'18:00',t:3.54,p:'retard_ptg_double'},
+    {n:'DUMONT Léna',j:[1,3],a:'08:30',d:'17:00',t:3.56,p:'retard_ptg_double'},
+    {n:'BLANC Théo',j:[0,1,2,3,4],a:'07:30',d:'17:30',t:3.56,p:'mix'},
+    {n:'GUERIN Anna',j:[0,1,2,4],a:'08:15',d:'17:45',t:3.24,p:'mix'},
+    ...Array.from({length:5},(_,i)=>({n:['HENRY Sacha','CHEVALIER Eva','MORIN Mathis','PICARD Camille','SCHMITT Nolan'][i],
+      j:[[0,2,3,4],[0,1,2,3,4],[1,2,3],[0,1,2,3,4],[0,1,2,3,4]][i],
+      a:['07:45','08:00','09:00','08:00','07:30'][i],d:['18:15','17:00','17:30','16:30','18:00'][i],
+      t:[3.14,2.60,4.15,2.80,3.91][i],p:'oublis_legers'})),
+    ...Array.from({length:5},(_,i)=>({n:['LEMAIRE Zoé','NOEL Tom','MASSON Lola','BARBIER Nathan','ROLLAND Juliette'][i],
+      j:[[0,1,2,3,4],[0,1,2,3,4],[0,1,2,3,4],[0,1,2,3,4],[0,1,3,4]][i],
+      a:['08:00','08:30','07:45','09:00','08:00'][i],d:['18:30','17:30','17:00','18:00','18:00'][i],
+      t:[3.83,3.34,3.67,2.78,3.55][i],p:'retards_legers'})),
+    ...Array.from({length:13},(_,i)=>({n:['CLEMENT Axel','GAUTHIER Clara','PERRIN Léon','CARON Agathe','RENAUD Enzo',
+      'MARCHAND Sarah','RIVIERE Oscar','FLEURY Margot','COLLET Paul','AUBERT Romane','GAILLARD Timéo','ROGER Capucine','BRUNET Aaron'][i],
+      j:[[0,1,2,3],[0,2,4],[1,3],[0,1,2,3,4],[0,1,2,4],[0,2,3,4],[0,1,2,3,4],[1,2,3],[0,1,2,3,4],[0,1,2,3,4],[0,1,2,3,4],[0,1,2,3,4],[0,1,2,3,4]][i],
+      a:['08:30','08:00','08:30','07:30','08:15','07:45','08:00','09:00','08:00','07:30','08:00','08:30','07:45'][i],
+      d:['17:30','18:00','17:00','17:30','17:45','18:15','17:00','17:30','16:30','18:00','18:30','17:30','17:00'][i],
+      t:[3.43,3.82,4.26,3.18,3.60,3.10,2.73,3.59,2.28,3.33,3.20,3.08,3.34][i],p:'exemplaire'}))
+  ];
+
+  // Store contrats
+  families={};
+  fams.forEach(f=>{families[f.n]={contratArr:timeToMin(f.a),contratDep:timeToMin(f.d),taux:f.t,jours:f.j,type:f.p}});
+
+  // Generate scans
+  const lines=['Date;Heure;Enfant;Sens'];
+  const start=new Date(2026,1,1);
+  const wdays=[];
+  for(let dd=new Date(start);dd.getMonth()===1;dd.setDate(dd.getDate()+1)){
+    if(dd.getDay()>0&&dd.getDay()<6) wdays.push(new Date(dd));
+  }
+
+  const rng=mulberry32(2026);
+  function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+
+  fams.forEach(f=>{
+    const arrM=timeToMin(f.a),depM=timeToMin(f.d);
+    wdays.forEach(day=>{
+      const wd=(day.getDay()+6)%7;
+      if(!f.j.includes(wd))return;
+      if(rng()<0.05)return;
+      const ds=`${String(day.getDate()).padStart(2,'0')}/${String(day.getMonth()+1).padStart(2,'0')}/${day.getFullYear()}`;
+      const r=rng();
+
+      if(f.p==='oublis_frequents'){
+        if(r<.25)return;
+        if(r<.38){lines.push(`${ds};${minToTime(arrM+Math.floor(rng()*10)-3)};${f.n};A`);return}
+        if(r<.48){lines.push(`${ds};${minToTime(depM+Math.floor(rng()*8)-4)};${f.n};D`);return}
+      }
+      if(f.p==='retard_matin'){
+        if(r<.03)return;
+        var at=arrM+(r<.55?10+Math.floor(rng()*25):Math.floor(rng()*8)-3);
+        lines.push(`${ds};${minToTime(at)};${f.n};A`);lines.push(`${ds};${minToTime(depM+Math.floor(rng()*8)-4)};${f.n};D`);return;
+      }
+      if(f.p==='retard_soir'){
+        if(r<.03)return;
+        lines.push(`${ds};${minToTime(arrM+Math.floor(rng()*8)-3)};${f.n};A`);
+        var dt=depM+(r<.5?10+Math.floor(rng()*30):Math.floor(rng()*8)-4);
+        lines.push(`${ds};${minToTime(dt)};${f.n};D`);return;
+      }
+      if(f.p==='avance_matin'){
+        if(r<.03)return;
+        var at=arrM+(r<.5?-(10+Math.floor(rng()*20)):Math.floor(rng()*5));
+        lines.push(`${ds};${minToTime(at)};${f.n};A`);lines.push(`${ds};${minToTime(depM+Math.floor(rng()*8)-4)};${f.n};D`);return;
+      }
+      if(f.p==='retard_ptg_matin'){
+        if(r<.04)return;
+        var at=arrM+(r<.65?20+Math.floor(rng()*18):Math.floor(rng()*8)-2);
+        lines.push(`${ds};${minToTime(at)};${f.n};A`);lines.push(`${ds};${minToTime(depM+Math.floor(rng()*6)-3)};${f.n};D`);return;
+      }
+      if(f.p==='retard_ptg_soir'){
+        if(r<.04)return;
+        lines.push(`${ds};${minToTime(arrM+Math.floor(rng()*6)-3)};${f.n};A`);
+        var dt=depM+(r<.60?-(20+Math.floor(rng()*18)):Math.floor(rng()*5)-3);
+        lines.push(`${ds};${minToTime(dt)};${f.n};D`);return;
+      }
+      if(f.p==='retard_ptg_double'){
+        if(r<.04)return;
+        var at=arrM+(r<.55?22+Math.floor(rng()*18):Math.floor(rng()*6)-2);
+        var r2=rng();
+        var dt=depM+(r2<.50?-(20+Math.floor(rng()*15)):Math.floor(rng()*5)-3);
+        lines.push(`${ds};${minToTime(at)};${f.n};A`);lines.push(`${ds};${minToTime(dt)};${f.n};D`);return;
+      }
+      if(f.p==='mix'){
+        if(r<.15)return;if(r<.25){lines.push(`${ds};${minToTime(arrM+Math.floor(rng()*5))};${f.n};A`);return}
+        var at=arrM+(r<.45?12+Math.floor(rng()*20):Math.floor(rng()*8)-3);
+        var dt=depM+(r<.6?8+Math.floor(rng()*20):Math.floor(rng()*8)-4);
+        lines.push(`${ds};${minToTime(at)};${f.n};A`);lines.push(`${ds};${minToTime(dt)};${f.n};D`);return;
+      }
+      if(f.p==='oublis_legers'){
+        if(r<.08)return;if(r<.12){lines.push(`${ds};${minToTime(depM+Math.floor(rng()*8)-4)};${f.n};D`);return}
+      }
+      if(f.p==='retards_legers'){
+        if(r<.02)return;
+        var at=arrM+(r<.20?8+Math.floor(rng()*12):Math.floor(rng()*6)-3);
+        var dt=depM+(r<.15?8+Math.floor(rng()*10):Math.floor(rng()*6)-3);
+        lines.push(`${ds};${minToTime(at)};${f.n};A`);lines.push(`${ds};${minToTime(dt)};${f.n};D`);return;
+      }
+      // exemplaire
+      if(r<.01)return;
+      lines.push(`${ds};${minToTime(arrM+Math.floor(rng()*6)-2)};${f.n};A`);
+      lines.push(`${ds};${minToTime(depM+Math.floor(rng()*6)-3)};${f.n};D`);
+    });
+  });
+
+  parsePointeuse(lines.join('\n'));
+  showContratsTable();
+  switchTab('dashboard');
+}
+
+// ==================== INIT ====================
+initTabs();
+renderImportTab();
+</script>
+</body>
+</html>
