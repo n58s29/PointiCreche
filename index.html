@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PointiCrèche v4 — Conformité PSU 2025</title>
+<title>PointiCrèche v5 — Conformité PSU 2026</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&family=Fraunces:ital,wght@0,600;0,700;0,800;1,600&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#FAF7F2;--card:#FFF;--warm:#FFF8F0;--text:#2C1810;--muted:#8B7355;--light:#B8A48E;--accent:#E8734A;--accent2:#D4612F;--accent-s:#FDEEE8;--ok:#388E3C;--ok-s:#E8F5E9;--warn:#EF6C00;--warn-s:#FFF3E0;--bad:#C62828;--bad-s:#FFEBEE;--info:#5C6BC0;--info-s:#E8EAF6;--purple:#7B1FA2;--purple-s:#F3E5F6;--border:#E8DFD3;--sh:0 2px 12px rgba(44,24,16,.06);--r:14px;--rs:8px}
@@ -73,8 +73,8 @@ tbody tr:hover{background:var(--warm)}
 </head>
 <body>
 <header class="hdr"><div class="hdr-in">
-  <div><h1>🏠 Pointi<b>Crèche</b> <small style="font-size:.45em;opacity:.35">v4 · PSU 2025</small></h1>
-  <div class="hdr-sub">Taux de facturation · Conformité pointage · Impact PSU linéarisé</div></div>
+  <div><h1>🏠 Pointi<b>Crèche</b> <small style="font-size:.45em;opacity:.35">v5 · PSU 2026</small></h1>
+  <div class="hdr-sub">Taux de facturation · Conformité pointage · Barème national 2026</div></div>
   <div class="hdr-btns">
     <button class="btn btn-s" onclick="loadDemo()">🎲 Démo</button>
     <button class="btn btn-p" onclick="$('fPt').click()">📂 Pointeuse</button>
@@ -128,7 +128,7 @@ function go(id){
 // ===== CONFIG TAB =====
 function renderConfig(){
   $('p-config').innerHTML=`
-  <div class="note note-info"><strong>ℹ️ Paramétrez votre structure ici.</strong> Ces données servent au calcul du taux de facturation et de l'estimation PSU 2025 (barème linéarisé depuis le 01/01/2025).</div>
+  <div class="note note-info"><strong>ℹ️ Paramétrez votre structure ici.</strong> Ces données servent au calcul du taux de facturation et de l'estimation PSU 2026 (barème national du 20/11/2025, linéarisation du taux de facturation).</div>
   <div class="two">
     <div class="card">
       <div class="card-h"><div class="card-t">🏠 Identité structure</div></div>
@@ -161,14 +161,17 @@ function renderConfig(){
     </div>
   </div>
   <div class="card" style="background:var(--warm)">
-    <div class="card-h"><div class="card-t">📐 Barème PSU 2025 applicable</div></div>
+    <div class="card-h"><div class="card-t">📐 Barème PSU 2026 applicable</div></div>
     <div class="dg">
       <div><label>Type</label><span>${STRUCT.couches_repas?'Couches + repas':'Sans couches/repas'}</span></div>
-      <div><label>Prix plafond ≤107%</label><span>${STRUCT.couches_repas?'10,05':'9,72'} €/h réalisée</span></div>
-      <div><label>Formule 107-120%</label><span>${STRUCT.couches_repas?'21,96':'21,63'} − 11,13 × Tx fact.</span></div>
-      <div><label>Prix plafond ≥120%</label><span>${STRUCT.couches_repas?'8,60':'8,27'} €/h réalisée</span></div>
+      <div><label>Prix plafond ≤107%</label><span>${STRUCT.couches_repas?'10,25':'9,92'} €/h réalisée</span></div>
+      <div><label>Formule 107-120%</label><span>${STRUCT.couches_repas?'23,812':'23,482'} − 12,674 × Tx fact.</span></div>
+      <div><label>Prix plafond ≥120%</label><span>${STRUCT.couches_repas?'8,603':'8,273'} €/h réalisée</span></div>
       <div><label>Taux prestation</label><span>66%</span></div>
       <div><label>Taux RG</label><span>${STRUCT.taux_rg}%</span></div>
+      <div><label>H. prép. accueil</label><span>8h / enfant inscrit</span></div>
+      <div><label>Plancher ressources</label><span>814,62 €/mois</span></div>
+      <div><label>Plafond ressources</label><span>8 500 €/mois</span></div>
     </div>
   </div>`;
 }
@@ -236,15 +239,15 @@ function m2t(m){return`${String(Math.floor(m/60)).padStart(2,'0')}:${String(Math
 function t2m(s){const p=s.match(/(\d{1,2})[h:.](\d{2})/);return p?(+p[1]*60+(+p[2])):0}
 function gc(p){return p>=98?'var(--ok)':p>=90?'#8BC34A':p>=80?'var(--warn)':'var(--bad)'}
 
-// ===== PSU 2025 CALCULATION =====
+// ===== PSU 2026 CALCULATION (Barème national du 20/11/2025) =====
 function calcPSU(hFacturees, hRealisees){
   const txFact = hRealisees>0 ? (hFacturees/hRealisees*100) : 100;
   const CR = STRUCT.couches_repas;
-  // Prix plafond barème 2025
+  // Prix plafond barème 2026
   let prixPlafond;
-  if(txFact<=107) prixPlafond = CR ? 10.05 : 9.72;
-  else if(txFact>=120) prixPlafond = CR ? 8.60 : 8.27;
-  else prixPlafond = (CR ? 21.96 : 21.63) - 11.13 * (txFact/100);
+  if(txFact<=107) prixPlafond = CR ? 10.250 : 9.920;
+  else if(txFact>=120) prixPlafond = CR ? 8.603 : 8.273;
+  else prixPlafond = (CR ? 23.812 : 23.482) - 12.674 * (txFact/100);
   // Prix de revient
   const prixRevient = hRealisees>0 ? STRUCT.charges_annuelles / hRealisees : 0;
   // Prix retenu = min(revient, plafond)
@@ -257,8 +260,8 @@ function calcPSU(hFacturees, hRealisees){
   const psu = (psuUnitaire - pfParH) * hFacturees * (STRUCT.taux_rg/100);
   // Journées pédagogiques
   const jpFinancement = STRUCT.journees_pedagogiques * 10 * STRUCT.places * psuUnitaire * (STRUCT.taux_rg/100);
-  // Heures préparation accueil
-  const hpFinancement = STRUCT.nb_inscrits * 6 * psuUnitaire * (STRUCT.taux_rg/100);
+  // Heures préparation accueil (2026: 8h par enfant inscrit)
+  const hpFinancement = STRUCT.nb_inscrits * 8 * psuUnitaire * (STRUCT.taux_rg/100);
 
   return {txFact:Math.round(txFact*100)/100, prixPlafond:Math.round(prixPlafond*100)/100,
     prixRevient:Math.round(prixRevient*100)/100, prixRetenu:Math.round(prixRetenu*100)/100,
@@ -367,18 +370,18 @@ function renderEcarts(){
   </div>
 
   <div class="card" style="background:var(--warm)">
-    <div class="card-h"><div class="card-t">📐 Détail calcul PSU 2025</div></div>
+    <div class="card-h"><div class="card-t">📐 Détail calcul PSU 2026</div></div>
     <div class="dg">
       <div><label>H. facturées (contrat)</label><span>${G.hFacturees}h</span></div>
       <div><label>H. réalisées (scan)</label><span>${G.hRealisees}h</span></div>
       <div><label>Taux facturation</label><span style="color:${psu.txFact<=107?'var(--ok)':'var(--warn)'}">${psu.txFact}%</span></div>
       <div><label>Prix de revient</label><span>${psu.prixRevient} €/h</span></div>
-      <div><label>Prix plafond 2025</label><span>${psu.prixPlafond} €/h</span></div>
+      <div><label>Prix plafond 2026</label><span>${psu.prixPlafond} €/h</span></div>
       <div><label>Prix retenu (min)</label><span>${psu.prixRetenu} €/h</span></div>
       <div><label>PSU unitaire (66%)</label><span>${psu.psuUnitaire} €/h</span></div>
       <div><label>PSU calculée</label><span style="font-size:1.1rem;color:var(--info)">${psu.psu.toLocaleString('fr-FR')} €</span></div>
       <div><label>+ J. pédagogiques</label><span>${psu.jpFinancement.toLocaleString('fr-FR')} €</span></div>
-      <div><label>+ H. prép. accueil</label><span>${psu.hpFinancement.toLocaleString('fr-FR')} €</span></div>
+      <div><label>+ H. prép. accueil (8h)</label><span>${psu.hpFinancement.toLocaleString('fr-FR')} €</span></div>
       <div><label>TOTAL PSU+bonus</label><span style="font-size:1.1rem;color:var(--accent)">${(psu.psu+psu.jpFinancement+psu.hpFinancement).toLocaleString('fr-FR')} €</span></div>
     </div>
   </div>
