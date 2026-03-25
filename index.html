@@ -276,57 +276,92 @@ function analyze(){
   const allDates=[...new Set(scans.map(s=>s.dk))].sort();
   const names=[...new Set(scans.map(s=>s.nom))];
   results={};
-  let globalHTheo=0, globalHReel=0;
+  let globalFact=0, globalReel=0;
 
   names.forEach(nom=>{
     const f=families[nom]||{arr:8*60,dep:17*60+30,taux:3,jours:[0,1,2,3,4]};
     const days=grp[nom]||{};
-    const hCJ=(f.dep-f.arr)/60;
+    const hCJ=(f.dep-f.arr)/60; // heures contrat par jour
     const expected=allDates.filter(dk=>{const wd=(new Date(dk).getDay()+6)%7;return f.jours.includes(wd)});
-    const a={nom,f,hCJ,totalJours:expected.length,joursPresent:0,hTheo:0,hReel:0,oublis:[],journees:[]};
+    const a={nom,f,hCJ,totalJours:expected.length,joursPresent:0,
+      hContrat:0,   // total heures contrat (théoriques)
+      hReel:0,      // total heures réalisées (scannées)
+      hFact:0,      // total heures facturées = MAX(contrat, scan) par jour
+      oublis:[],journees:[]};
 
     expected.forEach(dk=>{
       const sc=days[dk]||[];const arrs=sc.filter(s=>s.sens==='A').map(s=>s.tm);const deps=sc.filter(s=>s.sens==='D').map(s=>s.tm);
-      const hT=hCJ;a.hTheo+=hT;
-      const j={date:dk,arrs,deps,hT,hR:null,delta:0,issues:[]};
+      const hC=hCJ; // heures contrat du jour
+      a.hContrat+=hC;
+      // jour: hR=réalisées, hF=facturées, ecart=hF-hR
+      const j={date:dk,arrs,deps,hC,hR:null,hF:null,ecart:0,issues:[]};
 
       if(sc.length===0){
-        j.hR=hT;j.issues.push({type:'no_scan',label:'Aucun scan — contrat appliqué'});
-        a.oublis.push({date:dk,type:'total'});a.hReel+=hT;a.joursPresent++;
+        // Pas de scan → contrat appliqué des 2 côtés
+        j.hR=hC; j.hF=hC; j.ecart=0;
+        j.issues.push({type:'no_scan',label:'Aucun scan — contrat appliqué'});
+        a.oublis.push({date:dk,type:'total'});
+        a.hReel+=hC; a.hFact+=hC; a.joursPresent++;
       } else {
         a.joursPresent++;
         let sA=null,sD=null;
-        if(!arrs.length&&deps.length){j.issues.push({type:'no_arr',label:'Arr. non scannée'});a.oublis.push({date:dk,type:'arrivee'});sA=f.arr;}
-        else if(arrs.length) sA=Math.min(...arrs);
-        if(!deps.length&&arrs.length){j.issues.push({type:'no_dep',label:'Dép. non scanné'});a.oublis.push({date:dk,type:'depart'});sD=f.dep;}
-        else if(deps.length) sD=Math.max(...deps);
+        if(!arrs.length&&deps.length){
+          j.issues.push({type:'no_arr',label:'Arr. non scannée'});
+          a.oublis.push({date:dk,type:'arrivee'});
+          sA=f.arr; // use contract for missing
+        } else if(arrs.length) sA=Math.min(...arrs);
+        if(!deps.length&&arrs.length){
+          j.issues.push({type:'no_dep',label:'Dép. non scanné'});
+          a.oublis.push({date:dk,type:'depart'});
+          sD=f.dep;
+        } else if(deps.length) sD=Math.max(...deps);
 
         if(sA!==null&&sD!==null){
-          const hR=Math.max(0,(sD-sA)/60);j.hR=Math.round(hR*100)/100;a.hReel+=j.hR;
-          j.delta=Math.round((j.hR-hT)*100)/100;
-          if(j.delta<-0.08) j.issues.push({type:'sous',label:`${Math.round(j.delta*60)}min`});
-          else if(j.delta>0.08) j.issues.push({type:'sur',label:`+${Math.round(j.delta*60)}min`});
+          // Heures réalisées = durée entre scan arrivée et scan départ
+          const hR=Math.max(0,(sD-sA)/60);
+          j.hR=Math.round(hR*100)/100;
+          // Heures facturées = MAX(contrat, réalisées)
+          // Le contrat est toujours dû. Si l'enfant fait plus, on facture plus.
+          j.hF=Math.round(Math.max(hC, j.hR)*100)/100;
+          j.ecart=Math.round((j.hF-j.hR)*100)/100; // écart fact-réel (>=0)
+
+          a.hReel+=j.hR;
+          a.hFact+=j.hF;
+
+          // Sous-contrat = enfant fait moins que son contrat → gonflé le taux
+          if(j.hR < hC - 0.08){
+            const deltaMin=Math.round((j.hR-hC)*60);
+            j.issues.push({type:'sous',label:`${deltaMin}min vs contrat`});
+          }
+          // Sur-contrat = enfant fait plus que son contrat → facturé en plus
+          if(j.hR > hC + 0.08){
+            const deltaMin=Math.round((j.hR-hC)*60);
+            j.issues.push({type:'sur',label:`+${deltaMin}min (facturées)`});
+          }
+          // Arrivée tardive
           if(arrs.length&&sA>f.arr+tol) j.issues.push({type:'arr_t',label:`Arr +${sA-f.arr}min`});
           if(arrs.length&&sA<f.arr-tol) j.issues.push({type:'arr_e',label:`Arr ${sA-f.arr}min`});
+          // Départ anticipé ou tardif
           if(deps.length&&sD<f.dep-tol) j.issues.push({type:'dep_e',label:`Dép ${sD-f.dep}min`});
           if(deps.length&&sD>f.dep+tol) j.issues.push({type:'dep_t',label:`Dép +${sD-f.dep}min`});
           if(arrs.length>1) j.issues.push({type:'dup',label:`${arrs.length}×arr`});
           if(deps.length>1) j.issues.push({type:'dup',label:`${deps.length}×dép`});
-        } else {j.hR=hT;a.hReel+=hT;}
+        } else {
+          j.hR=hC;j.hF=hC;a.hReel+=hC;a.hFact+=hC;
+        }
       }
       a.journees.push(j);
     });
 
-    a.conformite=a.hTheo>0?Math.round(a.hReel/a.hTheo*10000)/100:100;
-    a.deltaH=Math.round((a.hReel-a.hTheo)*100)/100;
-    a.hPerdues=Math.round(a.journees.filter(j=>j.delta<0).reduce((s,j)=>s+Math.abs(j.delta),0)*100)/100;
+    // Taux de facturation par famille = hFacturées / hRéalisées (toujours >= 100%)
+    a.txFact=a.hReel>0?Math.round(a.hFact/a.hReel*10000)/100:100;
+    a.deltaH=Math.round((a.hFact-a.hReel)*100)/100; // heures facturées en plus que réalisées
     a.nbOublis=a.oublis.length;
-    globalHTheo+=a.hTheo;globalHReel+=a.hReel;
+    globalFact+=a.hFact; globalReel+=a.hReel;
     results[nom]=a;
   });
 
-  // Store globals for PSU calculation
-  results._global={hFacturees:Math.round(globalHTheo*10)/10, hRealisees:Math.round(globalHReel*10)/10};
+  results._global={hFacturees:Math.round(globalFact*10)/10, hRealisees:Math.round(globalReel*10)/10};
   renderEcarts();renderPointage();
 }
 
@@ -335,73 +370,79 @@ function renderEcarts(){
   const R=Object.values(results).filter(a=>a.nom);
   const G=results._global;
   const psu=calcPSU(G.hFacturees, G.hRealisees);
-  // What-if: sans écarts (txFact = 100%)
-  const psuIdeal=calcPSU(G.hFacturees, G.hFacturees);
+  // What-if: contrats = réalisées (taux = 100%)
+  const psuIdeal=calcPSU(G.hRealisees, G.hRealisees);
   const psuDelta=Math.round((psuIdeal.psu-psu.psu)*100)/100;
-  const globalConf=G.hFacturees>0?Math.round(G.hRealisees/G.hFacturees*10000)/100:100;
-  const famSous=R.filter(a=>a.conformite<98).length;
+  const famAlert=R.filter(a=>a.txFact>107).length;
   const totOublis=R.reduce((s,a)=>s+a.nbOublis,0);
+  const ecartH=Math.round((G.hFacturees-G.hRealisees)*10)/10;
 
   $('p-ecarts').innerHTML=`
   <div class="two">
     <div class="hero" style="background:linear-gradient(135deg,${psu.txFact<=107?'var(--ok-s)':'var(--warn-s)'},#fff);border:1px solid ${psu.txFact<=107?'#A5D6A7':'#FFB74D'}">
-      <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:1px;font-weight:600;color:var(--muted);margin-bottom:2px">Taux de facturation</div>
+      <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:1px;font-weight:600;color:var(--muted);margin-bottom:2px">Taux de facturation global</div>
       <div class="hero-v" style="color:${psu.txFact<=107?'var(--ok)':psu.txFact<=120?'var(--warn)':'var(--bad)'}">${psu.txFact}%</div>
-      <div style="font-size:.8rem;margin-top:4px">${G.hFacturees}h facturées ÷ ${G.hRealisees}h réalisées</div>
-      <div style="font-size:.76rem;color:var(--muted);margin-top:2px">${psu.txFact<=107?'✅ Zone optimale — prix plafond maximum':'⚠️ Au-dessus de 107% — prix plafond dégressif'}</div>
+      <div style="font-size:.8rem;margin-top:4px"><strong>${G.hFacturees}h</strong> facturées ÷ <strong>${G.hRealisees}h</strong> réalisées · Écart : <strong>${ecartH}h</strong></div>
+      <div style="font-size:.76rem;color:var(--muted);margin-top:2px">${psu.txFact<=107?'✅ Zone optimale ≤107% — prix plafond maximum':'⚠️ Au-dessus de 107% — prix plafond dégressif (linéarisation)'}</div>
     </div>
     <div class="hero" style="background:linear-gradient(135deg,var(--info-s),#fff);border:1px solid #9FA8DA">
-      <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:1px;font-weight:600;color:var(--muted);margin-bottom:2px">PSU estimée (${STRUCT.nom})</div>
+      <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:1px;font-weight:600;color:var(--muted);margin-bottom:2px">PSU estimée · ${STRUCT.nom}</div>
       <div class="hero-v" style="color:var(--info)">${(psu.psu/1000).toFixed(1)}k€</div>
       <div style="font-size:.8rem;margin-top:4px">PSU unitaire : ${psu.psuUnitaire} €/h · Prix plafond : ${psu.prixPlafond} €</div>
-      ${psuDelta>100?`<div style="font-size:.76rem;color:var(--bad);margin-top:2px">⚠️ Manque à gagner estimé : <strong>${(psuDelta/1000).toFixed(1)}k€</strong> vs taux à 100%</div>`:''}
+      ${psuDelta>100?`<div style="font-size:.76rem;color:var(--bad);margin-top:2px">⚠️ Manque à gagner vs taux 100% : <strong>${(psuDelta/1000).toFixed(1)}k€</strong></div>`:''}
     </div>
   </div>
 
   <div class="stats">
     <div class="st"><div class="st-v" style="color:var(--info)">${R.length}</div><div class="st-l">Enfants</div></div>
-    <div class="st"><div class="st-v" style="color:${psu.txFact<=107?'var(--ok)':'var(--warn)'}}">${psu.txFact}%</div><div class="st-l">Tx facturation</div></div>
-    <div class="st"><div class="st-v" style="color:${gc(globalConf)}">${globalConf}%</div><div class="st-l">Conformité H</div></div>
-    <div class="st"><div class="st-v" style="color:var(--bad)">${famSous}</div><div class="st-l">Familles &lt;98%</div></div>
-    <div class="st"><div class="st-v" style="color:var(--bad)">${totOublis}</div><div class="st-l">Oublis scan</div></div>
+    <div class="st"><div class="st-v" style="color:${psu.txFact<=107?'var(--ok)':'var(--warn)'}">${psu.txFact}%</div><div class="st-l">Tx facturation</div></div>
+    <div class="st"><div class="st-v" style="color:${famAlert?'var(--warn)':'var(--ok)'}">${famAlert}</div><div class="st-l">Familles &gt;107%</div></div>
+    <div class="st"><div class="st-v" style="color:var(--warn)">${totOublis}</div><div class="st-l">Oublis scan</div></div>
     <div class="st"><div class="st-v">${psu.prixPlafond}€</div><div class="st-l">Prix plafond</div></div>
     <div class="st"><div class="st-v">${psu.prixRevient}€</div><div class="st-l">Prix revient</div></div>
-    <div class="st"><div class="st-v">${psu.psuUnitaire}€</div><div class="st-l">PSU/h facturée</div></div>
+    <div class="st"><div class="st-v">${psu.psuUnitaire}€</div><div class="st-l">PSU/h</div></div>
+    <div class="st"><div class="st-v" style="color:var(--warn)">${ecartH}h</div><div class="st-l">Écart fact.−réel</div></div>
   </div>
 
   <div class="card" style="background:var(--warm)">
     <div class="card-h"><div class="card-t">📐 Détail calcul PSU 2026</div></div>
     <div class="dg">
-      <div><label>H. facturées (contrat)</label><span>${G.hFacturees}h</span></div>
-      <div><label>H. réalisées (scan)</label><span>${G.hRealisees}h</span></div>
+      <div><label>H. facturées</label><span>${G.hFacturees}h</span></div>
+      <div><label>H. réalisées</label><span>${G.hRealisees}h</span></div>
       <div><label>Taux facturation</label><span style="color:${psu.txFact<=107?'var(--ok)':'var(--warn)'}">${psu.txFact}%</span></div>
-      <div><label>Prix de revient</label><span>${psu.prixRevient} €/h</span></div>
-      <div><label>Prix plafond 2026</label><span>${psu.prixPlafond} €/h</span></div>
+      <div><label>Prix de revient</label><span>${psu.prixRevient} €/h réalisée</span></div>
+      <div><label>Prix plafond 2026</label><span>${psu.prixPlafond} €/h réalisée</span></div>
       <div><label>Prix retenu (min)</label><span>${psu.prixRetenu} €/h</span></div>
-      <div><label>PSU unitaire (66%)</label><span>${psu.psuUnitaire} €/h</span></div>
+      <div><label>PSU unitaire (66%)</label><span>${psu.psuUnitaire} €/h facturée</span></div>
       <div><label>PSU calculée</label><span style="font-size:1.1rem;color:var(--info)">${psu.psu.toLocaleString('fr-FR')} €</span></div>
       <div><label>+ J. pédagogiques</label><span>${psu.jpFinancement.toLocaleString('fr-FR')} €</span></div>
       <div><label>+ H. prép. accueil (8h)</label><span>${psu.hpFinancement.toLocaleString('fr-FR')} €</span></div>
-      <div><label>TOTAL PSU+bonus</label><span style="font-size:1.1rem;color:var(--accent)">${(psu.psu+psu.jpFinancement+psu.hpFinancement).toLocaleString('fr-FR')} €</span></div>
+      <div><label>TOTAL PSU+compléments</label><span style="font-size:1.1rem;color:var(--accent)">${(psu.psu+psu.jpFinancement+psu.hpFinancement).toLocaleString('fr-FR')} €</span></div>
     </div>
   </div>
 
+  <div class="note note-info" style="font-size:.8rem">
+    <strong>💡 Rappel :</strong> Taux de facturation = heures facturées ÷ heures réalisées. Les heures contrat sont toujours dues (facturées). Si l'enfant fait <em>moins</em> que son contrat, les heures manquantes sont facturées mais pas réalisées → le taux monte. Si l'enfant fait <em>plus</em>, les heures supplémentaires sont facturées ET réalisées → impact neutre sur le taux.
+  </div>
+
   <div class="card">
-    <div class="card-h"><div class="card-t">📊 Conformité par famille</div>
+    <div class="card-h"><div class="card-t">📊 Taux de facturation par famille</div>
     <div style="display:flex;gap:5px;flex-wrap:wrap">
       <input type="search" placeholder="🔍 Filtrer…" oninput="filt(this.value)" style="padding:5px 8px;border:1px solid var(--border);border-radius:5px;font-family:'DM Sans';font-size:.78rem">
       <select onchange="filtS(this.value)" style="padding:5px 8px;border:1px solid var(--border);border-radius:5px;font-family:'DM Sans';font-size:.78rem">
-        <option value="all">Toutes</option><option value="u">&lt;98%</option><option value="o">≥98%</option></select>
+        <option value="all">Toutes</option><option value="u">&gt;107%</option><option value="o">≤107%</option></select>
       <button class="btn btn-o btn-sm" onclick="exportCSV()">📊 CSV</button></div></div>
-    <div class="tc"><table><thead><tr><th>Enfant</th><th>Contrat</th><th>H. contrat</th><th>H. pointées</th><th>Delta</th><th>Conformité</th><th>Oublis</th></tr></thead>
-    <tbody id="eTb">${R.sort((a,b)=>a.conformite-b.conformite).map(a=>{
+    <div class="tc"><table><thead><tr><th>Enfant</th><th>Contrat</th><th>H. facturées</th><th>H. réalisées</th><th>Écart</th><th>Tx facturation</th><th>Oublis</th></tr></thead>
+    <tbody id="eTb">${R.sort((a,b)=>b.txFact-a.txFact).map(a=>{
       const jl={0:'L',1:'Ma',2:'Me',3:'J',4:'V'};
-      return`<tr data-n="${a.nom.toLowerCase()}" data-s="${a.conformite<98?'u':'o'}" onclick="showDet('${a.nom}')" style="cursor:pointer;${a.conformite<90?'background:#FFF5F5':a.conformite<98?'background:#FFFAF0':''}">
+      const bad=a.txFact>107;
+      return`<tr data-n="${a.nom.toLowerCase()}" data-s="${bad?'u':'o'}" onclick="showDet('${a.nom}')" style="cursor:pointer;${a.txFact>120?'background:#FFF5F5':bad?'background:#FFFAF0':''}">
         <td><strong>${a.nom}</strong></td>
         <td style="font-size:.72rem">${a.f.jours.map(j=>jl[j]).join('')} ${m2t(a.f.arr)}→${m2t(a.f.dep)}</td>
-        <td>${Math.round(a.hTheo*10)/10}h</td><td>${Math.round(a.hReel*10)/10}h</td>
-        <td style="font-weight:600;color:${a.deltaH<-1?'var(--bad)':a.deltaH<0?'var(--warn)':'var(--ok)'}">${a.deltaH>0?'+':''}${Math.round(a.deltaH*10)/10}h</td>
-        <td><div class="gauge"><div class="gauge-f" style="width:${Math.min(100,a.conformite)}%;background:${gc(a.conformite)}"></div><div class="gauge-t">${a.conformite}%</div></div></td>
+        <td>${Math.round(a.hFact*10)/10}h</td>
+        <td>${Math.round(a.hReel*10)/10}h</td>
+        <td style="font-weight:600;color:${a.deltaH>5?'var(--bad)':a.deltaH>1?'var(--warn)':'var(--ok)'}">+${Math.round(a.deltaH*10)/10}h</td>
+        <td><div class="gauge"><div class="gauge-f" style="width:${Math.min(100,Math.max(0,(a.txFact-100)*100/30))}%;background:${a.txFact<=107?'var(--ok)':a.txFact<=120?'var(--warn)':'var(--bad)'}"></div><div class="gauge-t">${a.txFact}%</div></div></td>
         <td>${a.nbOublis?`<span class="badge b-warn">${a.nbOublis}</span>`:'<span class="badge b-ok">0</span>'}</td></tr>`}).join('')}</tbody></table></div></div>`;
 }
 function filt(q){q=q.toLowerCase();document.querySelectorAll('#eTb tr').forEach(r=>{r.style.display=r.dataset.n?.includes(q)?'':'none'})}
@@ -435,31 +476,32 @@ function showDet(nom){
   const jl={0:'Lun',1:'Mar',2:'Mer',3:'Jeu',4:'Ven'};
   $('p-detail').innerHTML=`
   <div class="card"><div class="card-h"><div class="card-t">👶 ${a.nom}</div>
-    <div>${a.conformite<98?`<span class="badge b-bad">${a.conformite}%</span>`:`<span class="badge b-ok">${a.conformite}%</span>`} ${a.nbOublis?`<span class="badge b-warn">${a.nbOublis} oublis</span>`:''}</div></div>
+    <div>${a.txFact>107?`<span class="badge b-warn">Tx ${a.txFact}%</span>`:`<span class="badge b-ok">Tx ${a.txFact}%</span>`} ${a.nbOublis?`<span class="badge b-warn">${a.nbOublis} oublis</span>`:''}</div></div>
   <div class="dg">
     <div><label>Contrat</label><span>${a.f.jours.map(j=>jl[j]).join(', ')} · ${m2t(a.f.arr)}→${m2t(a.f.dep)}</span></div>
-    <div><label>H/jour</label><span>${a.hCJ}h</span></div>
-    <div><label>H. contrat mois</label><span>${Math.round(a.hTheo*10)/10}h</span></div>
-    <div><label>H. pointées</label><span style="color:${a.conformite<98?'var(--bad)':'var(--ok)'}">${Math.round(a.hReel*10)/10}h</span></div>
-    <div><label>Delta</label><span style="color:${a.deltaH<0?'var(--bad)':'var(--ok)'}">${a.deltaH>0?'+':''}${Math.round(a.deltaH*10)/10}h</span></div>
-    <div><label>Conformité</label><span style="color:${gc(a.conformite)};font-size:1.05rem"><strong>${a.conformite}%</strong></span></div>
+    <div><label>H/jour contrat</label><span>${a.hCJ}h</span></div>
+    <div><label>H. facturées mois</label><span>${Math.round(a.hFact*10)/10}h</span></div>
+    <div><label>H. réalisées mois</label><span>${Math.round(a.hReel*10)/10}h</span></div>
+    <div><label>Écart fact.−réel</label><span style="color:${a.deltaH>5?'var(--bad)':a.deltaH>1?'var(--warn)':'var(--ok)'}">+${Math.round(a.deltaH*10)/10}h</span></div>
+    <div><label>Taux facturation</label><span style="color:${a.txFact<=107?'var(--ok)':'var(--warn)'};font-size:1.05rem"><strong>${a.txFact}%</strong></span></div>
   </div></div>
-  <div class="card"><div class="card-h"><div class="card-t">📅 Historique</div>
+  <div class="card"><div class="card-h"><div class="card-t">📅 Historique journalier</div>
     <select onchange="fD(this.value)" style="padding:4px 8px;border:1px solid var(--border);border-radius:5px;font-family:'DM Sans';font-size:.76rem">
       <option value="a">Tous</option><option value="i">Anomalies</option><option value="s">Sous-contrat</option><option value="o">Oublis</option></select></div>
-  <div class="tc"><table><thead><tr><th>Date</th><th>Scans arr.</th><th>Contrat</th><th>Scans dép.</th><th>Contrat</th><th>H. réelles</th><th>H. contrat</th><th>Δ</th><th>Notes</th></tr></thead>
+  <div class="tc"><table><thead><tr><th>Date</th><th>Scans arr.</th><th>Contrat</th><th>Scans dép.</th><th>Contrat</th><th>H. réalisées</th><th>H. facturées</th><th>Écart</th><th>Notes</th></tr></thead>
   <tbody id="dTb">${a.journees.map(j=>{
     const dt=new Date(j.date).toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
     const types=j.issues.map(i=>i.type).join(',');
-    return`<tr data-t="${types}" style="${j.delta<-0.08?'background:#FFF5F5':j.issues.length?'background:var(--warm)':''}">
+    const isSous=j.hR!==null&&j.hR<j.hC-0.08;
+    return`<tr data-t="${types}" style="${isSous?'background:#FFF5F5':j.issues.length?'background:var(--warm)':''}">
       <td><strong>${dt}</strong></td>
       <td>${j.arrs.length?j.arrs.map(m=>`<span style="color:${Math.abs(m-a.f.arr)>STRUCT.tolerance?'var(--warn)':'var(--ok)'};font-weight:600">${m2t(m)}</span>`).join(' '):'<span style="color:var(--bad)">✕</span>'}</td>
       <td style="font-size:.72rem;color:var(--light)">${m2t(a.f.arr)}</td>
       <td>${j.deps.length?j.deps.map(m=>`<span style="color:${Math.abs(m-a.f.dep)>STRUCT.tolerance?'var(--warn)':'var(--ok)'};font-weight:600">${m2t(m)}</span>`).join(' '):'<span style="color:var(--bad)">✕</span>'}</td>
       <td style="font-size:.72rem;color:var(--light)">${m2t(a.f.dep)}</td>
-      <td style="font-weight:600;color:${j.hR<j.hT-0.08?'var(--bad)':'var(--text)'}">${j.hR!=null?Math.round(j.hR*10)/10+'h':'—'}</td>
-      <td style="font-size:.78rem;color:var(--muted)">${Math.round(j.hT*10)/10}h</td>
-      <td style="font-weight:700;color:${j.delta<-0.08?'var(--bad)':j.delta>0.08?'var(--info)':'var(--ok)'}">${Math.abs(j.delta)>0.08?(j.delta>0?'+':'')+Math.round(j.delta*60)+'min':'—'}</td>
+      <td style="font-weight:600;color:${j.hR<j.hC-0.08?'var(--bad)':'var(--text)'}">${j.hR!=null?Math.round(j.hR*10)/10+'h':'—'}</td>
+      <td style="font-size:.82rem;color:var(--muted)">${j.hF!=null?Math.round(j.hF*10)/10+'h':'—'}</td>
+      <td style="font-weight:700;color:${j.ecart>0.08?'var(--warn)':'var(--ok)'}">${j.ecart>0.08?'+'+Math.round(j.ecart*60)+'min':'—'}</td>
       <td style="font-size:.72rem">${j.issues.length?j.issues.map(i=>`<span class="badge ${i.type.includes('no_')||i.type==='no_scan'?'b-warn':i.type==='sous'?'b-bad':i.type==='sur'?'b-info':'b-warn'}">${i.label}</span>`).join(' '):'<span class="badge b-ok">OK</span>'}</td></tr>`}).join('')}
   </tbody></table></div></div>`;
 }
@@ -470,10 +512,10 @@ function fD(v){document.querySelectorAll('#dTb tr').forEach(r=>{const t=r.datase
 
 function exportCSV(){
   const jl={0:'L',1:'Ma',2:'Me',3:'J',4:'V'};
-  let csv='Enfant;Jours;Arr;Dep;H_Contrat;H_Pointees;Delta;Conformite;Oublis\n';
-  Object.values(results).filter(a=>a.nom).sort((a,b)=>a.conformite-b.conformite).forEach(a=>{
-    csv+=`${a.nom};${a.f.jours.map(j=>jl[j]).join('')};${m2t(a.f.arr)};${m2t(a.f.dep)};${Math.round(a.hTheo*10)/10};${Math.round(a.hReel*10)/10};${Math.round(a.deltaH*10)/10};${a.conformite}%;${a.nbOublis}\n`;});
-  const b=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});const l=document.createElement('a');l.href=URL.createObjectURL(b);l.download='conformite_psu.csv';l.click();}
+  let csv='Enfant;Jours;Arr;Dep;H_Facturees;H_Realisees;Ecart;Tx_Facturation;Oublis\n';
+  Object.values(results).filter(a=>a.nom).sort((a,b)=>b.txFact-a.txFact).forEach(a=>{
+    csv+=`${a.nom};${a.f.jours.map(j=>jl[j]).join('')};${m2t(a.f.arr)};${m2t(a.f.dep)};${Math.round(a.hFact*10)/10};${Math.round(a.hReel*10)/10};${Math.round(a.deltaH*10)/10};${a.txFact}%;${a.nbOublis}\n`;});
+  const b=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});const l=document.createElement('a');l.href=URL.createObjectURL(b);l.download='taux_facturation_psu.csv';l.click();}
 
 // ===== DEMO =====
 function loadDemo(){
