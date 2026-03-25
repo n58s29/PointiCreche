@@ -1,4 +1,4 @@
-# 🏠 PointiCrèche v4 — Conformité pointage & impact PSU 2025
+# 🏠 PointiCrèche v5 — Conformité pointage & impact PSU 2026
 
 **Outil d'analyse des pointages en crèche (EAJE) pour piloter le taux de facturation, détecter les écarts contrat et estimer l'impact sur la PSU.**
 
@@ -63,19 +63,21 @@ Vue journalière complète pour chaque enfant :
 
 ---
 
-## 🧮 Calcul PSU 2025 intégré
+## 🧮 Calcul PSU 2026 intégré
 
-L'outil applique le barème PSU en vigueur depuis le 01/01/2025 (circulaire CNAF 2024-160) :
+L'outil applique le **barème national 2026** (publié le 20/11/2025) :
 
 | Taux de facturation | Prix plafond (couches+repas) | Prix plafond (sans) |
 |---|---|---|
-| ≤ 107% | 10,05 €/h | 9,72 €/h |
-| 107% à 120% | 21,96 − 11,13 × Tx fact. | 21,63 − 11,13 × Tx fact. |
-| ≥ 120% | 8,60 €/h | 8,27 €/h |
+| ≤ 107% | 10,250 €/h | 9,920 €/h |
+| 107% à 120% | 23,812 − 12,674 × Tx fact. | 23,482 − 12,674 × Tx fact. |
+| ≥ 120% | 8,603 €/h | 8,273 €/h |
 
 **PSU = 66% × min(prix de revient, prix plafond) × heures facturées × taux RG**
 
-Le financement des **journées pédagogiques** (max 3/an × 10h × nb places × PSU unitaire × taux RG) et des **heures de préparation à l'accueil** (nb inscrits × 6h × PSU unitaire × taux RG) est également calculé.
+Le financement des **journées pédagogiques** (max 3/an × 10h × nb places × PSU unitaire × taux RG) et des **heures de préparation à l'accueil** (**8h** par enfant inscrit × PSU unitaire × taux RG) est également calculé.
+
+**Plancher de ressources 2026 :** 814,62 €/mois — **Plafond :** 8 500 €/mois
 
 ---
 
@@ -116,7 +118,7 @@ DUPONT Léa;Lundi, Mardi, Mercredi, Jeudi, Vendredi;07:30;18:00;3.74;Temps plein
 
 | Fichier | Description |
 |---|---|
-| `pointicreche-v4.html` | L'outil complet (single-file, zéro dépendance) |
+| `pointicreche-v5.html` | L'outil complet — barème PSU 2026 (single-file, zéro dépendance) |
 | `pointeuse_fevrier_2026.csv` | Données de pointeuse démo (49 familles, 20 jours ouvrés) |
 | `contrats_fevrier_2026.csv` | Contrats démo (jours, horaires, taux variés) |
 
@@ -124,6 +126,7 @@ DUPONT Léa;Lundi, Mardi, Mercredi, Jeudi, Vendredi;07:30;18:00;3.74;Temps plein
 
 ## 📋 Références réglementaires
 
+- **Barème national CAF 2026** — Les aides des CAF aux partenaires (mise à jour 20/11/2025)
 - **Circulaire CNAF 2024-160** — Réforme PSU au 01/01/2025 (linéarisation du taux de facturation)
 - **Circulaire CNAF 2024-123** — Journées pédagogiques et heures de préparation accueil
 - **Lettre circulaire CNAF 2014-009** — Règles de contractualisation et facturation PSU
